@@ -9,6 +9,7 @@
 # 
 # Part of the Seawolf Appliance
 # (c) kaiwanTECH
+# MIT License.
 
 # Get the aliases and functions
 if [ -f ~/.bashrc ]; then
