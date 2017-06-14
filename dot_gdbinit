@@ -1,0 +1,166 @@
+# ~/.gdbinit
+# from kaiwan.
+#----------------------------------------------------------------------
+# gdb startup file. Place this file in the home dir.
+# Used to define macros for conveneince when using [k]gdb.
+# CREDITS:
+# Several macros are sourced from "Embedded Linux Primer" (c) by Chris Hallinan.
+#
+# Another useful resource for more gdb macros:
+# http://www.ibm.com/developerworks/aix/library/au-gdb.html
+# 
+#----------------------------------------------------------------------
+
+set history save on
+set history filename ~/.gdb_history
+set output-radix 16
+
+#----------------------------------------------------------------------
+# connect
+define connect
+    set remotebaud 115200
+    target remote /dev/ttyS0
+    b panic
+    b sys_sync
+end
+
+#----------------------------------------------------------------------
+###----Useful macros from "Embedded Linux Primer" (c) by Chris Hallinan.
+# ps
+define ps
+   # Print column headers
+   task_struct_header
+   set $t=&init_task
+   task_struct_show $t
+   find_next_task $t
+   # Walk the list
+   while &init_task!=$t
+     # Display useful info about each task
+     task_struct_show $t
+     find_next_task $t
+   end
+end
+
+document ps
+Print points of interest for all tasks
+end
+
+#----------------------------------------------------------------------
+# lsmod
+define lsmod
+  printf "Address\t\tModule\n"
+  set $m=(struct list_head *)&modules
+  set $done=0
+  while ( !$done )
+    # list_head is 4-bytes into struct module
+    set $mp=(struct module *)((char *)$m->next - (char *)4)
+    printf "0x%08X\t%s\n", $mp, $mp->name
+    if ( $mp->list->next == &modules)
+       set $done=1
+     end
+     set $m=$m->next
+   end
+end
+
+document lsmod
+List the loaded kernel modules and their start addresses
+end
+
+#----------------------------------------------------------------------
+define find_next_task
+  # Given a task address, find the next task in the linked list
+  set $t = (struct task_struct *)$arg0
+  set $offset=( (char *)&$t->tasks - (char *)$t)
+  set $t=(struct task_struct *)( (char *)$t->tasks.next- (char *)$offset)
+end
+
+#----------------------------------------------------------------------
+# specific to PPC (?)
+# task_struct_show
+define task_struct_show
+   # task_struct addr and PID
+   printf "0x%08X %5d", $arg0, $arg0->pid
+
+   # Place a '<' marker on the current task
+   #  if ($arg0 == current)
+   # For PowerPC, register r2 points to the "current" task
+   if ($arg0 == $r2)
+     printf "<"
+   else
+     printf " "
+   end
+
+   # State
+   if ($arg0->state == 0)
+     printf "Running   "
+   else
+     if ($arg0->state == 1)
+       printf "Sleeping  "
+     else
+       if ($arg0->state == 2)
+         printf "Disksleep "
+       else
+         if ($arg0->state == 4)
+           printf "Zombie    "
+         else
+           if ($arg0->state == 8)
+             printf "sTopped   "
+           else
+             if ($arg0->state == 16)
+               printf "Wpaging   "
+             else
+               printf "%2d        ", $arg0->state
+             end
+           end
+         end
+       end
+     end
+   end
+
+   # User NIP
+   if ($arg0->thread.regs)
+     printf "0x%08X ", $arg0->thread.regs->nip
+   else
+     printf "           "
+   end
+
+   # Display the kernel stack pointer
+   printf "0x%08X ", $arg0->thread.ksp
+
+   # device
+   if ($arg0->signal->tty)
+     printf "%s   ", $arg0->signal->tty->name
+   else
+     printf "(none) "
+   end
+
+   # comm
+   printf "%s\n", $arg0->comm
+end
+
+#----------------------------------------------------------------------
+# find_task
+# Helper function to find a task given a PID or the
+# address of a task_struct.
+# The result is set into $t
+ define find_task
+   # Addresses greater than _end: kernel data...
+   # ...user passed in an address
+   if ((unsigned)$arg0 > (unsigned)&_end)
+     set $t=(struct task_struct *)$arg0
+   else
+     # User entered a numeric PID
+     # Walk the task list to find it
+     set $t=&init_task
+     if (init_task.pid != (unsigned)$arg0)
+       find_next_task $t
+       while (&init_task!=$t && $t->pid != (unsigned)$arg0)
+         find_next_task $t
+       end
+       if ($t == &init_task)
+         printf "Couldn't find task; using init_task\n"
+       end
+     end
+   end
+   printf "Task \"%s\":\n", $t->comm
+end
