@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # pidshow
 #
 # Shell Script.
@@ -15,8 +15,8 @@
 # 
 
 name=$(basename $0)
-. ~/bin/common.sh || {
-    echo "$name: source failed! ../common.sh invalid?"
+. ./common.sh || {
+    echo "$name: source failed! common.sh invalid?"
     exit 1
 }
 SEP='-------------------------------------------------------------------------------'

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #------------------------------------------------------------------
 # common.sh
 #
@@ -15,7 +15,7 @@ ON=1
 OFF=0
 
 ### UPDATE for your box
-source ./err_common.sh || {
+. ./err_common.sh || {
  echo "$name: could not source err_common.sh, aborting..."
  exit 1
 }
