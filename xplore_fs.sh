@@ -27,7 +27,7 @@ name=$(basename $0)
  exit 1
 }
 [ ! -r $1 ] && {
- echo "${name}: '$1' not read-able, re-run this utility as root. Aborting..."
+ echo "${name}: '$1' not read-able, re-run this utility as root (with sudo)? Aborting..."
  exit 1
 }
 STARTDIR=$1
