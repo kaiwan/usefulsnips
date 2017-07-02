@@ -12,14 +12,35 @@
 # 
 # URL: 
 # http://kaiwantech.wordpress.com/2012/02/23/exploring-linux-procfs-via-shell-scripts/
-# 
-
+# MIT License.
 name=$(basename $0)
-. ./common.sh || {
-    echo "$name: source failed! common.sh invalid?"
-    exit 1
+
+# check_root_AIA
+# Check whether we are running as root user; if not, exit with failure!
+# Parameter(s):
+#  None.
+# "AIA" = Abort If Absent :-)
+check_root_AIA()
+{
+	if [ `id -u` -ne 0 ]; then
+		echo "Error: need to run as root! Aborting..."
+		exit 1
+	fi
 }
-SEP='-------------------------------------------------------------------------------'
+
+# ShowTitle
+# Display a string in "title" form
+# Parameter(s):
+#  $1 : String to display [required]
+# Returns: 0 on success, 1 on failure
+ShowTitle()
+{
+	[ $# -ne 1 ] && return 1
+	SEP='-------------------------------------------------------------------------------'
+	echo $SEP
+	echo $1
+	echo $SEP
+}
 
 
 # With busybox (typically used on an eLinux), the soft-link target in 
