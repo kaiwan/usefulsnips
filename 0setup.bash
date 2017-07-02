@@ -9,7 +9,6 @@
 # 
 # Part of the Seawolf Appliance
 # (c) kaiwanTECH
-# MIT License.
 
 # Get the aliases and functions
 if [ -f ~/.bashrc ]; then
@@ -19,24 +18,23 @@ fi
 # User specific environment and startup programs
 
 pushd . >/dev/null
-
-PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:~/Dropbox/bin:~/Dropbox/bin/utils-knb
-# Mentor Graphics CodeSourcery toolchain: aarch64-buildroot-linux-gnu- 
-PATH=$PATH:~/MentorGraphics/Sourcery_CodeBench_Lite_for_ARM_GNU_Linux/bin
-# Buildroot toolchain: aarch64-buildroot-linux-gnu- 
-PATH=$PATH:/mnt/big/scratchpad/source_trees/buildroot/output/host/usr/bin
-
+PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/home/seawolf/kaiwanTECH/usefulsnips
 BASH_ENV=$HOME/.bashrc
+
 export BASH_ENV PATH
 unset USERNAME
 
-[ `id -u` -eq 0 ] && export PS1='# ' || export PS1='$ '
+# Prompt
+if [ "$(tty)" = "/dev/pts/0" ] ; then   # first/login tty
+  PS1='tty0 $ '
+  [ `id -u` -eq 0 ] && export PS1='tty0 # '
+else
+  TTY=$(tty|cut -d"/" -f3)
+  PS1='${TTY} $ '
+  [ `id -u` -eq 0 ] && export PS1='${TTY} # '
+fi
 
 # Aliases
-
-alias see='echo -n "date:" ; date; echo -n "distro:" ; head -n1 /etc/issue ; echo -n "kernel:" ; cat /proc/version; echo -n "cpu:" ; grep "model name" /proc/cpuinfo |uniq |cut -d: -f2; echo -n "uptime:" ; w|head -n1; acpi 2>/dev/null; echo "Syncing...:" ;sync;sync;sync'
-alias b='acpi' # battery
-
 alias cl='clear'
 alias ls='ls -F --color=auto'
 alias l='ls -lFh --color=auto'
@@ -45,12 +43,11 @@ alias rm='rm -i'
 alias mv='mv -i'
 alias cp='cp -i'
 
-alias dmesg='/bin/dmesg --human --decode --reltime --nopager'
-alias dm='/bin/dmesg --human --decode --reltime --nopager|tail -n35'
-alias jlog='/bin/journalctl -am --no-pager'
-alias jlogt='/bin/journalctl -am --no-pager|tail -n30'
+alias dmesg='/bin/dmesg --decode --nopager --color --ctime'
+alias dm='dmesg|tail -n35'
+alias dc='echo "Clearing klog"; dmesg -c > /dev/null'
+alias jlog='/bin/journalctl -ab --no-pager'
 alias lsh='lsmod | head'
-alias db='dropbox status'
 
 alias grep='grep --color=auto'
 alias s='echo "Syncing.."; sync; sync; sync'
@@ -60,6 +57,7 @@ alias ma='mount -a; df -h'
 
 alias py='ping -c3 yahoo.com'
 alias inet='netstat -a|grep ESTABLISHED'
+alias ifw='/sbin/ifconfig wlan0'
 #--------------------ps stuff
 # custom recent ps
 alias rps='ps -o user,pid,rss,stat,time,command -Aww |tail -n30'
@@ -75,23 +73,19 @@ popd >/dev/null
 
 # Ubuntu
 alias sd='sudo /bin/bash'
+alias jlog='journalctl -ab --no-pager'
+alias jlogf='journalctl -f' # jlog in "'tail -f' mode"
 
-# console debug: show all printk's on the console
-[ `id -u` -eq 0 ] && echo -n "8 4 1 7" > /proc/sys/kernel/printk
+[ $(id -u) -eq 0 ] && {
+  # console debug: show all printk's on the console
+  echo -n "7 4 1 7" > /proc/sys/kernel/printk
+  # better core-file pathname
+  echo "core_%h_%E_%p_%s_%u" > /proc/sys/kernel/core_pattern
+}
 
 ###
 # Some useful functions
 ###
-
-# xdf: http://smokey01.com/yad/
-function xdf()
-{
-eval yad --title="xdf" --image=drive-harddisk --text="Disk\ usage:" \
-      --buttons-layout=end --width=650 --multi-progress \
-	  $(df -hT $1 | tail -n +2 | \
-	   awk '{printf "--bar=\"<b>%s</b> (%s - %s) [%s/%s]\" %s ", $7, $1, $2, $4, $3, $6}')
-}
-
 function mem()
 {
  echo "PID    RSS    WCHAN            NAME"
@@ -99,27 +93,20 @@ function mem()
  echo
  echo "Note: 
  -Output auto-sorted by RSS (Resident Set Size)
- -RSS is expressed in KB!"
+ -RSS is expressed in kB!"
 }
 
 # dtop: useful wrapper over dstat
 dtop()
 {
 DLY=5
-echo dstat --time --top-io --top-cpu --top-mem ${DLY}
+echo dstat --time --top-io-adv --top-cpu --top-mem ${DLY}
  #--top-latency-avg
-dstat --time --top-io --top-cpu --top-mem ${DLY}
+dstat --time --top-io-adv --top-cpu --top-mem ${DLY}
  #--top-latency-avg
 }
 
-
-#---------------------------- GIT ------------------------
-# shortcut for git SCM
-# aliases: see https://www.linux.com/blog/git-success-stories-and-tips-kvm-maintainer-paolo-bonzini
-alias gdiff='git diff -r'
-alias gfiles='git diff --name-status -r'
-alias gstat='git diff --stat -r'
-
+# shortcut for git SCM;
 # -to add a file(s) and then commit it with a commit msg
 function gitac()
 {
@@ -132,7 +119,6 @@ function gitac()
  echo "git commit -m ..."
  git commit -m "$2"
 }
-#---------------------------------------------------------
 
 # Show thread(s) running on cpu core 'n'  - func c'n'
 function c0()
