@@ -2,9 +2,9 @@
 # sshconn.sh
 # 
 # Quick Description:
-# Simple wrapper over ssh
+# Simple wrapper over ssh.
 # 
-# Last Updated :
+# Last Updated : 30June2017
 # Created      : 15June2017
 # 
 # Author:
@@ -21,7 +21,11 @@ source ./common.sh || {
  exit 1
 }
 [ $# -lt 2 ] && {
-  echo "Usage: ${name} hostname username [IP-addr-to-ssh-to]"
+  echo "Usage: ${name} [hostname] username [IP-addr-to-ssh-to]
+Specify either as:
+  ${name} <hostname> <username>
+            -OR- 
+  ${name} - <username> <IP-address>"
   exit 1
 }
 

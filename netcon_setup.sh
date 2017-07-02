@@ -6,8 +6,13 @@
 # To be run on the local "patient" system; the remote system is the "doctor"
 # / host :)
 # Assumes the 'netconsole' kernel module is present.
-
-# Last Updated :
+#
+# To learn more details and how to etup netconsole, pl read:
+# https://www.kernel.org/doc/Documentation/networking/netconsole.txt
+# https://wiki.ubuntu.com/Kernel/Netconsole
+# https://mraw.org/blog/2010/11/08/Debugging_using_netconsole/
+# 
+# Last Updated : 29June2017
 # Created      : 14June2017
 # 
 # Author:
@@ -18,10 +23,6 @@
 # License: MIT.
 # 
 name=$(basename $0)
-#source ./common.sh || {
-# echo "${name}: fatal: could not source common.sh , aborting..."
-# exit 1
-#}
 
 ########### Functions follow #######################
 
@@ -49,16 +50,23 @@ lsmod|grep -q netconsole && {
  }
 }
 
-cmdstr="modprobe netconsole netconsole=+@${localIP}/${localDev},${remotePort}@${remoteIP}/"
+#cmdstr="modprobe netconsole netconsole=+@${localIP}/${localDev},${remotePort}@${remoteIP}/"
+                                      # + => 'extended' console support (verbose)
+cmdstr="modprobe netconsole netconsole=@${localIP}/${localDev},${remotePort}@${remoteIP}/"
 echo "Running: ${cmdstr}"
 eval ${cmdstr} || {
- echo "${name}: modprobe netconsole ... failed, aborting.."
+ echo "${name}: modprobe netconsole ... failed, aborting..
+*** NOTE- netconsole fails on a WiFi local device, pl Ensure you use ***
+*** Wired Ethernet on this (local) system                            ***
+ Last 20 lines dmesg output follows:"
+ dmesg |tail -n20
  exit 1
 }
 
 lsmod|grep netconsole
 echo "${name}: netconsole locked & loaded.
-Ensure (remote) receiver is setup to receive log packets (over nc)"
+Ensure (remote) receiver is setup to receive log packets (over nc)
+ Res: https://wiki.ubuntu.com/Kernel/Netconsole"
 } # end main()
 
 ##### execution starts here #####
