@@ -17,10 +17,6 @@
 # MIT License.
 # 
 name=$(basename $0)
-#source ./common.sh || {
-# echo "${name}: fatal: could not source common.sh , aborting..."
-# exit 1
-#}
 SUBNET='192.168.0.*'
  
 if [ $# -eq 1 ] ; then

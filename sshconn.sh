@@ -16,10 +16,6 @@
 # MIT License.
 # 
 name=$(basename $0)
-source ./common.sh || {
- echo "${name}: fatal: could not source common.sh , aborting..."
- exit 1
-}
 [ $# -lt 2 ] && {
   echo "Usage: ${name} [hostname] username [IP-addr-to-ssh-to]
 Specify either as:
