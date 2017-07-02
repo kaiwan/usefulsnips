@@ -29,5 +29,8 @@ fi
 
 echo "${name}: scanning subnet ${SUBNET} now, patience pl..."
 nmap -sn ${SUBNET}
-[ $(id -u) -ne 0 ] && echo "${name}: Tip: run as root for more detail."
+[ $(id -u) -ne 0 ] && {
+ echo
+ echo "${name}: Tip: run as root for more detail."
+}
 exit 0
