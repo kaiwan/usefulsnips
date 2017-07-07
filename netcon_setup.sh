@@ -44,7 +44,7 @@ localDev=$(ifconfig |grep -B1 "${localIP}" |head -n1 |cut -d":" -f1)
 }
 
 lsmod|grep -q netconsole && {
- rmmod netconsole || {
+ sudo rmmod netconsole || {
    echo "${name}: rmmod netconsole [old instance] failing, aborting..."
    exit 1
  }
@@ -52,13 +52,14 @@ lsmod|grep -q netconsole && {
 
 #cmdstr="modprobe netconsole netconsole=+@${localIP}/${localDev},${remotePort}@${remoteIP}/"
                                       # + => 'extended' console support (verbose)
-cmdstr="modprobe netconsole netconsole=@${localIP}/${localDev},${remotePort}@${remoteIP}/"
+cmdstr="sudo modprobe netconsole netconsole=@${localIP}/${localDev},${remotePort}@${remoteIP}/"
 echo "Running: ${cmdstr}"
 eval ${cmdstr} || {
- echo "${name}: modprobe netconsole ... failed, aborting..
+ echo "${name}: sudo modprobe netconsole ... failed, aborting..
 *** NOTE- netconsole fails on a WiFi local device, pl Ensure you use ***
 *** Wired Ethernet on this (local) system                            ***
- Last 20 lines dmesg output follows:"
+ Last 20 lines dmesg output follows:
+"
  dmesg |tail -n20
  exit 1
 }
@@ -71,10 +72,10 @@ Ensure (remote) receiver is setup to receive log packets (over nc)
 
 ##### execution starts here #####
 
-[ $(id -u) -ne 0 ] && {
-  echo "${name}: requires root."
-  exit 1
-}
+#[ $(id -u) -ne 0 ] && {
+#  echo "${name}: requires root."
+#  exit 1
+#}
 [ $# -ne 1 ] && {
  echo "Usage: ${name} remoteIP"
  exit 1
