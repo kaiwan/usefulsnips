@@ -5,10 +5,10 @@ unset ARCH
 unset CROSS_COMPILE
 
 name=$(basename $0)
-[ `id -u` -ne 0 ] && {
- echo "$name: Need to be root!"
- exit 1
-}
+#[ `id -u` -ne 0 ] && {
+# echo "$name: Need to be root!"
+# exit 1
+#}
 
 SEP="-----------------------------------------------------------------------"
 if [ $# -ne 1 ]; then
@@ -22,8 +22,8 @@ cat /etc/issue
 uname -r
 
 echo $SEP
-echo "rmmod $1 2> /dev/null"
-rmmod $1 2> /dev/null
+echo "sudo rmmod $1 2> /dev/null"
+sudo rmmod $1 2> /dev/null
 
 echo $SEP
 echo "make clean"
@@ -31,9 +31,9 @@ echo $SEP
 make clean
 
 echo $SEP
-echo "dmesg -c > /dev/null"
+echo "sudo dmesg -c > /dev/null"
 echo $SEP
-dmesg -c > /dev/null
+sudo dmesg -c > /dev/null
 
 echo $SEP
 echo "make || exit 1"
@@ -41,12 +41,11 @@ echo $SEP
 make || exit 1
 
 echo $SEP
-echo "insmod ./$1.ko && lsmod|grep $1"
+echo "sudo insmod ./$1.ko && lsmod|grep $1"
 echo $SEP
-insmod ./$1.ko && lsmod|grep $1
+sudo insmod ./$1.ko && lsmod|grep $1
 
 echo $SEP
 echo "dmesg"
 echo $SEP
 dmesg
-
