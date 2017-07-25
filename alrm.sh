@@ -19,19 +19,19 @@ if [ $# -lt 1 ]; then
 	exit 1
 fi
 
-echo $#
-echo $@
-echo $1
+#echo $#
+#echo $@
+#echo $1
 
 SLEEP_TIME=1800	# seconds
 if [ ! -z $2 ]; then
 	SLEEP_TIME=$(($2*60))
 fi
-
+msg="${1}
+Restart the alarm?"
 while [ true ]
 do
 	sleep $SLEEP_TIME
-	zenity --title=$TITLE --question --text="$1" || break
+	zenity --title=$TITLE --question --text="${msg}" || break
 done
 exit 0
-
