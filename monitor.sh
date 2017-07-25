@@ -33,9 +33,9 @@ usage()
 }
 
 if [ `id -u` -ne 0 ]; then
-  echo "$0: need to be root!"
+  echo "${name}: need to be root!"
   echo "Run like this (copy-paste onto terminal):
-sudo ~/kaiwanTECH/utils/monitor.sh 0|1"
+sudo $(which monitor.sh)"
   exit 1
 fi
 
@@ -44,12 +44,13 @@ which dstat >/dev/null || {
 }
 
 CLI_MODE=0
-pgrep Xorg >/dev/null || CLI_MODE=1
+xdpyinfo >/dev/null 2>&1 || CLI_MODE=1
 [ $# -eq 1 ] && {
   [ $1 -eq 0 ] && CLI_MODE=1
 }
 
 if [ ${CLI_MODE} -eq 1 ] ; then     #------------- CLI Mode
+  echo "[${name}: GUI display unavailable, defaulting to CLI mode...]"
   dstat --time --top-io-adv --top-cpu --top-mem 5
   exit 0
 fi
