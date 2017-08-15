@@ -1,0 +1,69 @@
+#!/bin/bash
+# prcsmem
+# 
+# Quick Description:
+# Show total memory currently in use by a given process. 
+# A wrapper over smem.
+#
+# Last Updated : 14Aug2017
+# Created      : 14Aug2017
+# 
+# Author:
+# Kaiwan N Billimoria
+# kaiwan -at- kaiwantech -dot- com
+# kaiwanTECH
+# 
+# License:
+# MIT License.
+# 
+name=$(basename $0)
+source ./common.sh || {
+ echo "${name}: fatal: could not source common.sh , aborting..."
+ exit 1
+}
+
+########### Globals follow #########################
+# Style: gNameOfGlobalVar
+
+
+########### Functions follow #######################
+
+
+start()
+{
+printf "${name}: calculating total memory in use by \"$1\", pl wait ...\n"
+# 6th field is USS
+# 7th field is PSS
+# 8th field is RSS
+local szKB_USS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$6} END {printf "%ld\n", t}')
+local szKB_PSS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$7} END {printf "%ld\n", t}')
+local szKB_RSS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$8} END {printf "%ld\n", t}')
+
+printf "%-25s: size KB : size MB : size GB\n" "Label"
+pr_sz_human "USS (Unshared Size)" ${szKB_USS}
+pr_sz_human "PSS (Proportional Size)" ${szKB_PSS}
+pr_sz_human "RSS (Resident Size)" ${szKB_RSS}
+}
+
+##### 'main' : execution starts here #####
+
+# testing...
+[ 1 -eq 0 ] && {
+ pr_sz_human "testing ...." 1000000000000000000000000000
+ exit 0
+}
+
+which smem >/dev/null || {
+ echo "${name}: smem not installed? Aborting..."
+ exit 1
+}
+[ $# -ne 1 ] && {
+  echo "Usage: ${name} process-name"
+  exit 1
+}
+pgrep $1 >/dev/null || {
+ echo "${name}: process \"$1\" does not exist? Aborting..."
+ exit 1
+}
+start $1
+exit 0
