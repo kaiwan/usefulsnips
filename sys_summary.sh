@@ -16,8 +16,9 @@
 # MIT License.
 # 
 name=$(basename $0)
+#source ~/src-show-2.6k/common.sh || {
 source ./common.sh || {
- echo "${name}: fatal: could not source common.sh , aborting..."
+ echo "${name}: fatal: could not source ./common.sh , aborting..."
  exit 1
 }
 #[ $# -ne 1 ] && {
@@ -29,29 +30,37 @@ OUTFILE=/tmp/.$$
 
 ########### Functions follow #######################
 
+setcolor() { bg_cyan ; fg_white
+}
+secho()
+{
+setcolor ; echo "$@" ; color_reset
+}
 
 gather_sys()
 {
-date
-echo
+fg_cyan ; date ; color_reset
+#echo
 
 # Distribution Info
+secho "Linux Distributor:"
 lsb_release -a 2>/dev/null
-echo
+#echo
 
-echo -n "uptime:" ; w|head -n1
-echo
+secho "Uptime:"
+w|head -n1
+#echo
 
-echo -n "Kernel: "
+secho "Kernel: "
 uname -r
 cat /proc/version
-echo
+#echo
 
-echo -n "Toolchain/compiler: "
+secho "Toolchain/compiler: "
 gcc --version|head -n1
-echo
+#echo
 
-echo "CPU:"
+secho "CPU:"
 grep "model name" /proc/cpuinfo |uniq |cut -d: -f2
 cpu_cores=$(getconf -a|grep _NPROCESSORS_ONLN|awk '{print $2}')
 grep -w -q "lm" /proc/cpuinfo && echo " 64-bit"
@@ -59,21 +68,24 @@ egrep -w -q "vmx|smx" /proc/cpuinfo || echo " -no h/w virt support available-"
 grep -w -q "vmx" /proc/cpuinfo && echo " Intel VT-x (h/w virtualization support available)" || echo " -no h/w virt support-"
 grep -w -q "smx" /proc/cpuinfo && echo " AMD SMX (h/w virtualization support available)"
 echo " cpu cores: ${cpu_cores}"
-echo
+#echo
 
-echo "RAM:"
+secho "RAM:"
 free -h
-echo
+#echo
 
-echo -n "IP address(es): " ; hostname -I
-echo
+secho "IP address(es): " ; hostname -I
+#echo
 
+secho "Battery: "
 acpi 2>/dev/null
 } > ${OUTFILE}
 
 start()
 {
+ShowTitle " System Info"
 gather_sys
+
 cat ${OUTFILE}
 rm -f ${OUTFILE}
 }
