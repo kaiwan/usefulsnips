@@ -16,8 +16,8 @@
 # MIT License.
 # 
 name=$(basename $0)
-#source ~/src-show-2.6k/common.sh || {
-source ./common.sh || {
+PFX=$(dirname `which ${name}`)
+source ${PFX}/common.sh || {
  echo "${name}: fatal: could not source ./common.sh , aborting..."
  exit 1
 }

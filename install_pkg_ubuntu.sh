@@ -10,7 +10,8 @@
 # kaiwanTECH
 # 
 name=$(basename $0)
-source ./common.sh || {
+PFX=$(dirname `which ${name}`)
+source ${PFX}/common.sh || {
  echo "$name: could not source common.sh , aborting..."
  exit 1
 }

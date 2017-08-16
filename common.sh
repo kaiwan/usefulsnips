@@ -6,7 +6,7 @@
 # 
 # (c) Kaiwan N Billimoria
 # kaiwan -at- kaiwantech -dot- com
-# MIT / GPL v2
+# License: MIT
 #------------------------------------------------------------------
 # The SEALS Opensource Project
 # SEALS : Simple Embedded Arm Linux System
@@ -20,11 +20,12 @@ ON=1
 OFF=0
 
 ### UPDATE for your box
-source ./err_common.sh || {
+PFX=$(dirname `which $0`)
+source ${PFX}/err_common.sh || {
  echo "$name: could not source err_common.sh, aborting..."
  exit 1
 }
-source ./color.sh || {
+source ${PFX}/color.sh || {
  echo "$name: could not source color.sh, aborting..."
  exit 1
 }
