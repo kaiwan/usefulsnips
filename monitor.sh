@@ -10,7 +10,6 @@
 #
 # Ref:
 # http://kaiwantech.wordpress.com/2014/01/06/simple-system-monitoring-for-a-linux-desktop/
-#
 name=$(basename $0)
 
 usage()
@@ -33,10 +32,9 @@ usage()
 }
 
 if [ `id -u` -ne 0 ]; then
-  echo "${name}: need to be root!"
-  echo "Run like this (copy-paste onto terminal):
-sudo $(which monitor.sh)"
-  exit 1
+  echo "${name}: need root, invoking script via sudo now ..."
+  exec sudo $(which monitor.sh)
+  #exit 1
 fi
 
 which dstat >/dev/null || {
@@ -55,11 +53,6 @@ if [ ${CLI_MODE} -eq 1 ] ; then     #------------- CLI Mode
   exit 0
 fi
 
-#if [ $1 -ne 1 ] ; then
-# usage
-# exit 1
-#fi
-
 #----------------- GUI Mode
 which iotop  >/dev/null || {
  echo "${name}: error: iotop not installed?" ; exit 1
@@ -68,6 +61,7 @@ which iftop >/dev/null || {
  echo "${name}: error: iftop not installed?" ; exit 1
 }
 
+# TODO - replace zenity w/ yad
 choices=$(zenity --title="kaiwanTECH : Simple Linux Monitoring" --list --text="Select any/all appropriate options" \
 		--checklist \
 		--column="Select" --column="Monitoring Software" \
