@@ -8,13 +8,6 @@
 # kaiwan -at- kaiwantech -dot- com
 # License: MIT
 #------------------------------------------------------------------
-# The SEALS Opensource Project
-# SEALS : Simple Embedded Arm Linux System
-# Maintainer : Kaiwan N Billimoria
-# kaiwan -at- kaiwantech -dot- com
-# Project URL:
-# https://github.com/kaiwan/seals
-
 export TOPDIR=$(pwd)
 ON=1
 OFF=0
@@ -328,3 +321,27 @@ local verbose=0
   fi
   printf "\n"
 }
+
+#---------------- n u m t h r e a d s ---------------------------------
+# Given a process name, calculates the # of threads currently alive
+# within it _and_ other processes of the same name.
+# Params:
+# $1 = process name
+# Ret: # of threads curr alive in the given process
+#  -the 'return' is an artifact; we echo the value; the caller is to
+#   pick it up using the usual quoting technique.
+numthreads()
+{
+local pid nthrd total_thrds
+#for pidrec in $(ps -LA|egrep "^$1")
+# Loop over all processes by given name
+for pid in $(pgrep "$1")
+do
+  #echo "pid: ${pid}"
+  # get # threads within this pid
+  nthrd=$(ls /proc/${pid}/task |wc -w)
+  #echo "${pid}:${nthrd}"
+  let total_thrds+=nthrd
+done
+echo "${total_thrds}"
+} # end numthreads()

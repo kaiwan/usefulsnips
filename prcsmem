@@ -2,7 +2,7 @@
 # prcsmem
 # 
 # Quick Description:
-# Show total memory currently in use by a given process. 
+# Show total memory currently in use by a given set of processes. 
 # A wrapper over smem.
 #
 # Last Updated : 14Aug2017
@@ -32,14 +32,30 @@ source ${PFX}/common.sh || {
 
 start()
 {
-printf "${name}: calculating total memory in use by \"$1\", pl wait ...\n"
 # 6th field is USS
 # 7th field is PSS
 # 8th field is RSS
+
+printf "${name}: inititalizing, pl wait ...\r"
+local nthrds=$(numthreads "$1")
+local nprcs=$(smem |egrep "$1" |grep -v grep|wc -l)
+#[ ${nprcs} -eq 1 ] && nthrds=$(ls /proc/$(pidof $1)/task/ |wc -w)
+
+printf "${name}: calculating total USS memory in use by \"$1\" ${nprcs}/${nthrds} process(es)/thread(s), pl wait ...\r"
 local szKB_USS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$6} END {printf "%ld\n", t}')
+
+nprcs=$(smem |egrep "$1" |grep -v grep|wc -l)
+nthrds=$(numthreads "$1")
+printf "${name}: calculating total PSS memory in use by \"$1\" ${nprcs}/${nthrds} process(es)/thread(s), pl wait ...\r"
 local szKB_PSS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$7} END {printf "%ld\n", t}')
+
+nprcs=$(smem |egrep "$1" |grep -v grep|wc -l)
+nthrds=$(numthreads "$1")
+printf "${name}: calculating total RSS memory in use by \"$1\" ${nprcs}/${nthrds} process(es)/thread(s), pl wait ...\r"
 local szKB_RSS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$8} END {printf "%ld\n", t}')
 
+nthrds=$(numthreads "$1")
+printf "NOTE- total memory currently in use by the set of ${nprcs} \"$1\" processes (${nthrds} threads):\n"
 printf "%-25s: size KB : size MB : size GB\n" "Label"
 pr_sz_human "USS (Unshared Size)" ${szKB_USS}
 pr_sz_human "PSS (Proportional Size)" ${szKB_PSS}
@@ -49,8 +65,9 @@ pr_sz_human "RSS (Resident Size)" ${szKB_RSS}
 ##### 'main' : execution starts here #####
 
 # testing...
-[ 1 -eq 0 ] && {
- pr_sz_human "testing ...." 1000000000000000000000000000
+[ 0 -eq 1 ] && {
+ numthreads chrome
+ #pr_sz_human "testing ...." 1000000000000000000000000000
  exit 0
 }
 
