@@ -20,8 +20,13 @@ name=$(basename $0)
 ########### Globals follow #########################
 # Style: gNameOfGlobalVar
 
-# !UPDATE for your box!
+gInitMsg=\
+"@@@ ${name}: WARNING! Don't blindly act on coccinelle's output @@@
+@@@ False positives can and do occur. Verify your code.         @@@
+"
+# kernel source tree location: !UPDATE for your box!
 gKSRC_LOC=~/big/kernels/linux-4.4.21/ #~/git-kernel-latest/
+gVERBOSE=0
 
 ########### Functions follow #######################
 
@@ -30,24 +35,24 @@ runcocci()
 [ $# -ne 1 ] && return
 local cocci
 local SP_BASEOPTS="-D report --very-quiet --include-headers"
+local msg
 
 # If first parameter is a directory, then work on all source files within it
 if [ -d $1 ] ; then
   SP_OPTS="${SP_BASEOPTS} --dir $1"
-#elif [ -f $1 ] ; then
-#  SP_OPTS="${SP_BASEOPTS} --sp-file $1"
+  msg="#Folder:${1}"
+else
+  msg="#FILE:${1}"
 fi
 
-echo "#FILE:${1}"
+echo "${msg}"
 # Loop over all cocci sp's (semantic patches)
 for cocci in $(find ${gKSRC_LOC}/scripts/coccinelle/ -name "*.cocci")
 do
- #nm=$(basename ${cocci})
- echo "*--$(basename ${cocci})--*"
- spatch ${SP_OPTS} --sp-file ${cocci}
- #spatch -D report --very-quiet --sp-file ${cocci} --include-headers ${1}
+ [ ${gVERBOSE} -eq 1 ] && echo "*--$(basename ${cocci})--*"
+ spatch ${SP_BASEOPTS} --sp-file ${cocci} ${1}
 done
-}
+} # end runcocci()
 
 
 ##### 'main' : execution starts here #####
@@ -62,25 +67,35 @@ which spatch >/dev/null || {
   [ "${parent}" = "bash" ] && exit 1 || return 1
 }
 [ $# -lt 1 ] && {
-  echo "Usage: ${name} source-pathname [file2] [file3] ..."
+  echo "Usage: ${name} <source-pathname(s)> file1 [file2] [file3] ...
+  -OR-
+${name} source-folder"
   [ "${parent}" = "bash" ] && exit 1 || return 1
 }
 
-  # spatch -D report --very-quiet --dir $1 --include-headers
-  #  [ "${parent}" = "bash" ] && exit 0 || return 0
-#}
+echo "${gInitMsg}"
 
+# TODO
+# handle ^c ^\ properly; kill all spatch processes
+
+# If a folder passed as $1
 if [ -d $1 ] ; then
   runcocci $1
   [ "${parent}" = "bash" ] && exit 0 || return 0
 fi
 
-# If several files are passed, or a wildcard..
+# If one or more files are passed, or a wildcard..
 for fname in "$@"
 do
-  [ ! -f $1 -o ! -r $1 ] && {
-    echo "${name}: source-pathname \"${fname}\" does not exist or unreadable?"
-    [ "${parent}" = "bash" ] && exit 1 || return 1
+  file ${fname} |egrep -q "C source" || {
+    echo "${name}: skipping ${fname} .."
+	continue
+  }
+    # RELOOK: will spatch play nicely with C++ ?? As of now, we don't process it
+
+  [ ! -f ${fname} -o ! -r ${fname} ] && {
+    echo "${name}: source file \"${fname}\" does not exist or unreadable?"
+	continue
   }
   runcocci ${fname}
 done
