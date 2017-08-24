@@ -1,0 +1,87 @@
+#!/bin/bash
+# coccichk
+# 
+# Quick Description:
+# Run the Linux kernel's cocinelle semantic patch checkers on a given
+# source file(s) or folder. Realistically, a wrapper over spatch.
+#
+# Last Updated :
+# Created      : 23Aug2017
+# 
+# Author:
+# Kaiwan N Billimoria
+# kaiwan -at- kaiwantech -dot- com
+# kaiwanTECH
+# 
+# License:
+# MIT License.
+name=$(basename $0)
+
+########### Globals follow #########################
+# Style: gNameOfGlobalVar
+
+# !UPDATE for your box!
+gKSRC_LOC=~/big/kernels/linux-4.4.21/ #~/git-kernel-latest/
+
+########### Functions follow #######################
+
+runcocci()
+{
+[ $# -ne 1 ] && return
+local cocci
+local SP_BASEOPTS="-D report --very-quiet --include-headers"
+
+# If first parameter is a directory, then work on all source files within it
+if [ -d $1 ] ; then
+  SP_OPTS="${SP_BASEOPTS} --dir $1"
+#elif [ -f $1 ] ; then
+#  SP_OPTS="${SP_BASEOPTS} --sp-file $1"
+fi
+
+echo "#FILE:${1}"
+# Loop over all cocci sp's (semantic patches)
+for cocci in $(find ${gKSRC_LOC}/scripts/coccinelle/ -name "*.cocci")
+do
+ #nm=$(basename ${cocci})
+ echo "*--$(basename ${cocci})--*"
+ spatch ${SP_OPTS} --sp-file ${cocci}
+ #spatch -D report --very-quiet --sp-file ${cocci} --include-headers ${1}
+done
+}
+
+
+##### 'main' : execution starts here #####
+
+parent=$(ps -o comm= $PPID)
+which spatch >/dev/null || {
+  echo "${name}: coccinelle (spatch) not installed?"
+  exit 1
+}
+[ ! -d ${gKSRC_LOC} ] && {
+  echo "${name}: kernel source tree location \"${KSRC_LOC}\" invalid?"
+  [ "${parent}" = "bash" ] && exit 1 || return 1
+}
+[ $# -lt 1 ] && {
+  echo "Usage: ${name} source-pathname [file2] [file3] ..."
+  [ "${parent}" = "bash" ] && exit 1 || return 1
+}
+
+  # spatch -D report --very-quiet --dir $1 --include-headers
+  #  [ "${parent}" = "bash" ] && exit 0 || return 0
+#}
+
+if [ -d $1 ] ; then
+  runcocci $1
+  [ "${parent}" = "bash" ] && exit 0 || return 0
+fi
+
+# If several files are passed, or a wildcard..
+for fname in "$@"
+do
+  [ ! -f $1 -o ! -r $1 ] && {
+    echo "${name}: source-pathname \"${fname}\" does not exist or unreadable?"
+    [ "${parent}" = "bash" ] && exit 1 || return 1
+  }
+  runcocci ${fname}
+done
+[ "${parent}" = "bash" ] && exit 0 || return 0
