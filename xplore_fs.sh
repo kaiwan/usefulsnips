@@ -34,7 +34,7 @@ local numln=$(wc -l $1|awk '{print $1}')
   return
 }
 
-[ -f $1 ] && cat $1     # display file content
+[ -f $1 -a -r $1 ] && cat $1     # display file content
 }
 
 ###--- "main" here
@@ -82,8 +82,18 @@ do
 		inode/blockdevice) printf ": <blockdev>\n" ; continue ;;
 		application/x-sharedlib|*zlib) printf ": <binary>\n" ; continue ;;
 		application/zip|application/x-xz) printf ": <zip file>\n" ; continue ;;
-		text/plain|text/*) printf ": <reg file>\n" ; display_file ${sysfile} ;;
-		*) printf ": <-other->\n" ; ls -l ${sysfile} ; continue ;;
+		# Text files
+		text/plain|text/*)
+					printf ": <reg file>\n"
+					#display_file ${sysfile}
+					;;
+		# procfs files
+		inode/x-empty) # usually the case for procfs (pseudo)'files'
+					firstdir="/$(echo "${sysfile}" |cut -d"/" -f2)"
+					#echo "firstdir=${firstdir}"
+					[ "${firstdir}"="/proc" ] && display_file ${sysfile}
+					;;
+		*) printf ": <-other->\n" ; printf "  " ; ls -l ${sysfile} 2>/dev/null ; continue ;;
   esac
   printf "%s\n" ${SEP}
 done
