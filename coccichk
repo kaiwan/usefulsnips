@@ -23,6 +23,7 @@ name=$(basename $0)
 gInitMsg=\
 "@@@ ${name}: WARNING! Don't blindly act on coccinelle's output @@@
 @@@ False positives can and do occur. Verify your code.         @@@
+@@@ (Also, it works only on C source/header files, nothing else)@@@
 "
 # kernel source tree location: !UPDATE for your box!
 gKSRC_LOC=~/big/kernels/linux-4.4.21/ #~/git-kernel-latest/
@@ -76,7 +77,7 @@ ${name} source-folder"
 echo "${gInitMsg}"
 
 # TODO
-# handle ^c ^\ properly; kill all spatch processes
+# Handle ^C ^\ properly; kill all spatch processes
 
 # If a folder passed as $1
 if [ -d $1 ] ; then
