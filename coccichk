@@ -64,7 +64,7 @@ which spatch >/dev/null || {
   exit 1
 }
 [ ! -d ${gKSRC_LOC} ] && {
-  echo "${name}: kernel source tree location \"${KSRC_LOC}\" invalid?"
+  echo "${name}: kernel source tree location \"${gKSRC_LOC}\" invalid?"
   [ "${parent}" = "bash" ] && exit 1 || return 1
 }
 [ $# -lt 1 ] && {
