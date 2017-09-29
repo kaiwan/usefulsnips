@@ -14,11 +14,11 @@ MAX_SZ_KB=100
 MAX_LINES=500
 
 # Parameters
-# $1 : regular text file to display contents of
+# $1 : regular text file's pathname - to display contents of
 display_file()
 {
 [ $# -eq 0 ] && return
-echo "${SEP}"
+printf "\n${SEP}\n"
 
 # Check limits
 local sz=$(ls -l $1|awk '{print $5}')
@@ -85,7 +85,7 @@ do
 		# Text files
 		text/plain|text/*)
 					printf ": <reg file>\n"
-					#display_file ${sysfile}
+					display_file ${sysfile}
 					;;
 		# procfs files
 		inode/x-empty) # usually the case for procfs (pseudo)'files'
@@ -93,7 +93,8 @@ do
 					#echo "firstdir=${firstdir}"
 					[ "${firstdir}"="/proc" ] && display_file ${sysfile}
 					;;
-		*) printf ": <-other->\n" ; printf "  " ; ls -l ${sysfile} 2>/dev/null ; continue ;;
+		*) printf ": <-other->\n" ; #printf "  " 
+		   ls -l ${sysfile} 2>/dev/null ; continue ;;
   esac
   printf "%s\n" ${SEP}
 done
