@@ -27,7 +27,7 @@ gInitMsg=\
 "
 # kernel source tree location: !UPDATE for your box!
 gKSRC_LOC=~/big/kernels/linux-4.4.21/ #~/git-kernel-latest/
-gVERBOSE=0
+gVERBOSE=1
 
 ########### Functions follow #######################
 
