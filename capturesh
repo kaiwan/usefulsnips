@@ -1,0 +1,2 @@
+#!/bin/sh
+sudo uprobe-perf 'r:bash:readline +0($retval):string'
