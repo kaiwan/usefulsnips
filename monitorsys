@@ -1,9 +1,11 @@
 #!/bin/bash
-# monitor.sh
+# monitorsys
 # Part of the Seawolf project.
 # Simple script to setup & run various 'monitor' programs in terminal windows.
 # Run as : gksu </path/to/>monitor.sh | sudo </path/to/>monitor.sh
 # 
+# Update: added vmstat [20Oct2017]
+#
 # Author: Kaiwan NB
 # (c) Kaiwan NB, kaiwanTECH
 # MIT License.
@@ -31,15 +33,19 @@ usage()
  "
 }
 
+# deps check
+for util in vmstat dstat iotop iftop lxterminal
+do
+  which ${util} >/dev/null || {
+   echo "${name}: error: utility ${util} not installed? Pl install & retry"
+   exit 1
+  }
+done
+
 if [ `id -u` -ne 0 ]; then
   echo "${name}: need root, invoking script via sudo now ..."
   exec sudo $(which monitor.sh)
-  #exit 1
 fi
-
-which dstat >/dev/null || {
- echo "${name}: error: dstat not installed?" ; exit 1
-}
 
 CLI_MODE=0
 xdpyinfo >/dev/null 2>&1 || CLI_MODE=1
@@ -54,34 +60,38 @@ if [ ${CLI_MODE} -eq 1 ] ; then     #------------- CLI Mode
 fi
 
 #----------------- GUI Mode
-which iotop  >/dev/null || {
- echo "${name}: error: iotop not installed?" ; exit 1
-}
-which iftop >/dev/null || {
- echo "${name}: error: iftop not installed?" ; exit 1
-}
 
 # TODO - replace zenity w/ yad
 choices=$(zenity --title="kaiwanTECH : Simple Linux Monitoring" --list --text="Select any/all appropriate options" \
 		--checklist \
 		--column="Select" --column="Monitoring Software" \
-		--width=400 --height=250 \
+		--width=400 --height=300 \
 		"1" "iotop" \
 		"2" "dtop" \
 		"3" "dstat" \
-		"4" "iftop" 2>/dev/null)
+		"4" "vmstat" \
+		"5" "iftop" 2>/dev/null)
 
 echo "${choices}"
 
+# iotop
 echo "${choices}" | grep -w iotop >/dev/null 2>&1
 [ $? -eq 0 ] && lxterminal --working-directory=${HOME}/ --command="iotop" --title="IOTOP" --geometry=90x10 &
 
+# dtop
 echo "${choices}" | grep -w dtop >/dev/null 2>&1
 [ $? -eq 0 ] && lxterminal --working-directory=${HOME}/ --command="dstat --time --top-io-adv --top-cpu --top-mem 5" --title="DTOP" --geometry=110x10 &
 
+# dstat
 echo "${choices}" | grep -w dstat >/dev/null 2>&1
 [ $? -eq 0 ] && lxterminal --working-directory=${HOME}/ --command="dstat" --title="DSTAT" --geometry=90x10 &
 
+# vmstat {delaysec}
+DELAYSEC=3
+echo "${choices}" | grep -w vmstat >/dev/null 2>&1
+[ $? -eq 0 ] && lxterminal --working-directory=${HOME}/ --command="vmstat ${DELAYSEC}" --title="VMSTAT" --geometry=90x10 &
+
+# iftop
 echo "${choices}" | grep -w iftop >/dev/null 2>&1
 [ $? -eq 0 ] && {
    netif=$(ifconfig |grep "^enp"|awk '{print $1}')
