@@ -36,7 +36,7 @@ usage()
 # deps check
 for util in vmstat dstat iotop iftop lxterminal
 do
-  which ${util} >/dev/null || {
+  which ${util} >/dev/null 2>&1 || {
    echo "${name}: error: utility ${util} not installed? Pl install & retry"
    exit 1
   }
