@@ -2,7 +2,7 @@
 # monitorsys
 # Part of the Seawolf project.
 # Simple script to setup & run various 'monitor' programs in terminal windows.
-# Run as : gksu </path/to/>monitor.sh | sudo </path/to/>monitor.sh
+# Run as : gksu </path/to/>monitorsys | sudo </path/to/>monitorsys
 # 
 # Update: added vmstat [20Oct2017]
 #
@@ -44,7 +44,7 @@ done
 
 if [ `id -u` -ne 0 ]; then
   echo "${name}: need root, invoking script via sudo now ..."
-  exec sudo $(which monitor.sh)
+  exec sudo $(which monitorsys)
 fi
 
 CLI_MODE=0
