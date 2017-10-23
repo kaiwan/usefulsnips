@@ -24,15 +24,16 @@ BASH_ENV=$HOME/.bashrc
 export BASH_ENV PATH
 unset USERNAME
 
-# Prompt
-if [ "$(tty)" = "/dev/pts/0" ] ; then   # first/login tty
-  PS1='tty0 $ '
-  [ `id -u` -eq 0 ] && export PS1='tty0 # '
-else
-  TTY=$(tty|cut -d"/" -f3)
-  PS1='${TTY} $ '
-  [ `id -u` -eq 0 ] && export PS1='${TTY} # '
-fi
+#--- Prompt
+# ref: https://unix.stackexchange.com/questions/20803/customizing-bash-shell-bold-color-the-command
+[ `id -u` -eq 0 ] && {
+   #export PS1='# '
+   export PS1='\[\e[1;34m\]# \[\e[0;32m\]'
+} || {
+   #export PS1='$ '
+   export PS1='\[\e[1;34m\]\$ \[\e[0;32m\]'
+}
+trap 'printf \\e[0m' DEBUG  # IMP: turn Off color once Enter pressed..
 
 # Aliases
 alias cl='clear'
@@ -47,6 +48,7 @@ alias dmesg='/bin/dmesg --decode --nopager --color --ctime'
 alias dm='dmesg|tail -n35'
 alias dc='echo "Clearing klog"; dmesg -c > /dev/null'
 alias jlog='/bin/journalctl -ab --no-pager'
+alias jlogr='/bin/journalctl -amxr' #--no-pager|tail -n30' # r => reverse order
 alias lsh='lsmod | head'
 
 alias grep='grep --color=auto'
@@ -73,14 +75,14 @@ popd >/dev/null
 
 # Ubuntu
 alias sd='sudo /bin/bash'
-alias jlog='journalctl -ab --no-pager'
-alias jlogf='journalctl -f' # jlog in "'tail -f' mode"
 
 [ $(id -u) -eq 0 ] && {
   # console debug: show all printk's on the console
-  echo -n "7 4 1 7" > /proc/sys/kernel/printk
-  # better core-file pathname
-  echo "core_%h_%E_%p_%s_%u" > /proc/sys/kernel/core_pattern
+  [ `id -u` -eq 0 ] && echo -n "7 4 1 7" > /proc/sys/kernel/printk
+  # better core pattern
+  [ $(id -u) -eq 0 ] && {
+   echo "corefile:host=%h:gPID=%P:gTID=%I:ruid=%u:sig=%s:exe=%E" > /proc/sys/kernel/core_pattern
+  }
 }
 
 ###
