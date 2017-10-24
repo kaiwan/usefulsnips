@@ -33,14 +33,22 @@ usage()
  "
 }
 
-# deps check
+### check command/utility dependencies
+needinstall=0
 for util in vmstat dstat iotop iftop lxterminal
 do
-  which ${util} >/dev/null 2>&1 || {
-   echo "${name}: error: utility ${util} not installed? Pl install & retry"
-   exit 1
-  }
+    which ${util} > /dev/null 2>&1 || {
+        [ ${needinstall} -eq 0 ] && echo "[!] ${name}: missing utilit[y|ies]:"
+        echo " ${util}"
+        needinstall=1
+        continue
+   }
 done
+[ ${needinstall} -eq 1 ] && {
+  echo "ERROR! missing one or more utils (see above) in \$PATH. ${name} needs" \
+    "to use these command(s). Pl install and retry, exiting."
+  exit 1
+}
 
 if [ `id -u` -ne 0 ]; then
   echo "${name}: need root, invoking script via sudo now ..."
