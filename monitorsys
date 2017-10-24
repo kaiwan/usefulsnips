@@ -35,7 +35,7 @@ usage()
 
 ### check command/utility dependencies
 needinstall=0
-for util in vmstat dstat iotop iftop lxterminal
+for util in vmstat dstat iotop iftop lxterminal zenity
 do
     which ${util} > /dev/null 2>&1 || {
         [ ${needinstall} -eq 0 ] && echo "[!] ${name}: missing utilit[y|ies]:"
@@ -55,8 +55,12 @@ if [ `id -u` -ne 0 ]; then
   exec sudo $(which monitorsys)
 fi
 
+# CLI or GUI mode?
 CLI_MODE=0
 xdpyinfo >/dev/null 2>&1 || CLI_MODE=1
+# On FC 26, xdpyinfo fails when run as root; so lets do another check as well
+ps -e|egrep -w "X|Xorg|Xwayland" >/dev/null 2>&1 && CLI_MODE=0 || CLI_MODE=1
+# if user insists, force CLI mode
 [ $# -eq 1 ] && {
   [ $1 -eq 0 ] && CLI_MODE=1
 }
