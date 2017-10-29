@@ -56,18 +56,25 @@ local szKB_RSS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$8} END {printf "%ld\n"
 
 nthrds=$(numthreads "$1")
 printf "NOTE- total memory currently in use by the set of ${nprcs} \"$1\" processes (${nthrds} threads):\n"
-printf "%-25s: size KB : size MB : size GB\n" "Label"
-pr_sz_human "USS (Unshared Size)" ${szKB_USS}
-pr_sz_human "PSS (Proportional Size)" ${szKB_PSS}
-pr_sz_human "RSS (Resident Size)" ${szKB_RSS}
+#printf "%-25s: size KB : size MB : size GB\n" "Label"
+
+local tmp=$((${szKB_USS}*1024)) # bytes
+pr_sz_human "USS (Unshared Size)" ${tmp}
+local tmp=$((${szKB_PSS}*1024)) # bytes
+pr_sz_human "PSS (Proportional Size)" ${tmp}
+local tmp=$((${szKB_RSS}*1024)) # bytes
+pr_sz_human "RSS (Resident Size)" ${tmp}
 }
 
 ##### 'main' : execution starts here #####
 
 # testing...
 [ 0 -eq 1 ] && {
- numthreads chrome
- #pr_sz_human "testing ...." 1000000000000000000000000000
+ #numthreads chrome
+# pr_sz_human "testing ...." 100
+ pr_sz_human "testing ...." 10000
+ pr_sz_human "testing ...." 100000000
+ pr_sz_human "testing ...." 1000000000000000000000000000
  exit 0
 }
 
