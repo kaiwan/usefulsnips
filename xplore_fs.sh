@@ -28,14 +28,16 @@ display_file()
 
 # Check limits
 local sz=$(ls -l $1|awk '{print $5}')
-pr_sz_human "sz" ${sz}
+#pr_sz_human "sz" ${sz}
+
+tput bold
+ls -lh $1
 
 [ ${sz} -gt ${MAX_SZ} ] && {
   printf "\n   *** <Skipping, above max allowed size (%ld bytes)> ***\n" ${MAX_SZ}
   return
 }
 local numln=$(wc -l $1|awk '{print $1}')
-tput bold
 printf "${numln} lines\n"
 color_reset
 [ ${numln} -gt ${MAX_LINES} ] && {
