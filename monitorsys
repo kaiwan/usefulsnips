@@ -74,6 +74,7 @@ fi
 #----------------- GUI Mode
 
 # TODO - replace zenity w/ yad
+#     - zenity on FC26 issue??
 choices=$(zenity --title="kaiwanTECH : Simple Linux Monitoring" --list --text="Select any/all appropriate options" \
 		--checklist \
 		--column="Select" --column="Monitoring Software" \
@@ -83,7 +84,6 @@ choices=$(zenity --title="kaiwanTECH : Simple Linux Monitoring" --list --text="S
 		"3" "dstat" \
 		"4" "vmstat" \
 		"5" "iftop" 2>/dev/null)
-
 echo "${choices}"
 
 # iotop
