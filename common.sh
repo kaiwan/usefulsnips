@@ -329,6 +329,7 @@ ${szGoB}:BB
     tput bold
     printf "%s:0 bytes [pseudo-file]\n" "$1"
     color_reset
+  }
 
   rm -f ${TMPF}
 

@@ -50,11 +50,11 @@ printf "%s\n" "${SEP}"
 usage()
 {
  echo "Usage: ${name} start-dir [max-folder-depth-to-traverse]
- 
+
  Displays the names of all files starting from the folder 'start-dir';
  if a regular file And it's readable And it's size and number if lines lies
  within the preconfigured 'max', it's content is displayed.
- 
+
  The 'max-folder-depth-to-traverse' parameter is optional; passing it
  constrains the folder depth of the search [default=4]."
  exit 1
