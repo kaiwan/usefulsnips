@@ -240,11 +240,11 @@ lastchar=$(echo "${prcs_name:${len}:1}")
 }
 
 #------------------- p r _ s z _ h u m a n ----------------------------
-# Prints given numeric KB value in MB, GB as required.
+# Prints given numeric KB value in MB, GB, TB, etc as required.
 # Requires: bc
 # Parameters:
 # $1 = label
-# $2 = size in KB
+# $2 = size in bytes
 #
 # TODO - on embedded systems it's unlikely 'bc' will be available; 
 #  must do without it..
@@ -252,46 +252,87 @@ pr_sz_human()
 {
 [ -z $2 ] && return
 which bc >/dev/null || return
+local sz=$2 szKB=0 szMB=0 szGB=0 szTB=0 szPB=0 szEB=0 szZB=0 szYB=0 szBB=0 szGoB=0 
 
-local szKB=$2
-local szMB=0 szGB=0 szTB=0 szPB=0 szEB=0 szZB=0 szYB=0 szBB=0  szGoB=0 
+if (( $(echo "${sz} > 1024" |bc -l) )); then
+  szKB=$(bc <<< "scale=2; ${sz}/1024.0")
+fi
 
 #echo "p1 = $1 ; p2 = $2 ; @ = $@"
 
-local verbose=0
+local verbose=0 TMPF=".tmpfil"
 [ ${verbose} -eq 1 ] && {
  printf "%30s:%9s:%9s:%9s:%9s:%9s:%9s:%9s:%9s:%9s:%9s\n" " " "KB" "MB" "GB" "PB" "TB" "EB" "ZB" "YB" "BB" "GoB"
 }
 
-  [ ${szKB} -ge 1024 ] && szMB=$(bc <<< "scale=2; ${szKB}/1024.0")      # MB : megabytes : 10^6
+  #[ ${szKB} -ge 1024 ] && szMB=$(bc -l <<< "scale=2; ${szKB}/1024.0")      # MB : megabytes : 10^6
   # !EMB: if we try and use simple bash arithmetic comparison, we get a
   # "integer expression expected" err; hence, use bc:
+  if (( $(echo "${szKB} > 1024" |bc -l) )); then                        # MB : megabytes : 10^6
+    szMB=$(bc -l <<< "scale=2; ${szKB}/1024.0")
+  fi
   if (( $(echo "${szMB} > 1024" |bc -l) )); then                        # GB : gigabytes : 10^9
-    szGB=$(bc <<< "scale=2; ${szMB}/1024.0")
+    szGB=$(bc -l <<< "scale=2; ${szMB}/1024.0")
   fi
   if (( $(echo "${szGB} > 1024" |bc -l) )); then                        # TB : terabytes : 10^12
-    szTB=$(bc <<< "scale=2; ${szGB}/1024.0")
+    szTB=$(bc -l <<< "scale=2; ${szGB}/1024.0")
   fi
   if (( $(echo "${szTB} > 1024" |bc -l) )); then                        # PB : petabytes : 10^15
-    szPB=$(bc <<< "scale=2; ${szTB}/1024.0")
+    szPB=$(bc -l <<< "scale=2; ${szTB}/1024.0")
   fi
   if (( $(echo "${szPB} > 1024" |bc -l) )); then                        # EB : exabytes : 10^18
-    szEB=$(bc <<< "scale=2; ${szPB}/1024.0")
+    szEB=$(bc -l <<< "scale=2; ${szPB}/1024.0")
   fi
   if (( $(echo "${szEB} > 1024" |bc -l) )); then                        # ZB : zettabytes : 10^21
-    szZB=$(bc <<< "scale=2; ${szEB}/1024.0")
+    szZB=$(bc -l <<< "scale=2; ${szEB}/1024.0")
   fi
   if (( $(echo "${szZB} > 1024" |bc -l) )); then                        # YB : yottabytes : 10^24
-    szYB=$(bc <<< "scale=2; ${szZB}/1024.0")
+    szYB=$(bc -l <<< "scale=2; ${szZB}/1024.0")
   fi
   if (( $(echo "${szYB} > 1024" |bc -l) )); then                        # BB : brontobytes : 10^27
-    szBB=$(bc <<< "scale=2; ${szYB}/1024.0")
+    szBB=$(bc -l <<< "scale=2; ${szYB}/1024.0")
   fi
   if (( $(echo "${szBB} > 1024" |bc -l) )); then                        # GB [?] : geopbytes : 10^30
-    szGoB=$(bc <<< "scale=2; ${szBB}/1024.0")
+    szGoB=$(bc -l <<< "scale=2; ${szBB}/1024.0")
   fi
 
-  printf "%-25s:%9ld" "$1" ${szKB}
+  cat > ${TMPF} << @EOF@
+${sz}:bytes
+${szKB}:KB
+${szMB}:MB
+${szGB}:GB
+${szTB}:TB
+${szPB}:KB
+${szEB}:PB
+${szZB}:EB
+${szYB}:ZB
+${szBB}:YB
+${szGoB}:BB
+@EOF@
+
+  # Fetch the biggest non-zero number from the sorted list
+
+################ TODO - check on readable /proc files !
+
+  local pair=$(awk -F: '$1 != 0 {print $0}' ${TMPF} |tail -n1)
+    # a 'pair' looks like this, eg.: "153567:MB"
+	# for /proc files, 'pair' is NULL; check for this case
+  [ ! -z "${pair}" ] && {
+    local biggest=$(echo "${pair}" |cut -d: -f1)
+    local unit=$(echo "${pair}" |cut -d: -f2)
+
+    tput bold
+    printf "%s:%s bytes = %s %s\n" "$1" "${sz}" "${biggest}" "${unit}"
+    #printf "%-25s:%9s bytes = %9s %s\n" "$1" "${sz}" "${biggest}" "${unit}"
+    color_reset
+  } || {              # procfs / sysfs / debugfs / etc
+    tput bold
+    printf "%s:0 bytes [pseudo-file]\n" "$1"
+    color_reset
+
+  rm -f ${TMPF}
+
+ [ 0 -eq 1 ] && {
   if (( $(echo "${szMB} > 0" |bc -l) )); then           # print MB
     printf ":%9.2f" ${szMB}
   fi
@@ -320,6 +361,7 @@ local verbose=0
     printf ":%9.2f" ${szGoB}
   fi
   printf "\n"
+ }
 }
 
 #---------------- n u m t h r e a d s ---------------------------------
