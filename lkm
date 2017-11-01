@@ -24,7 +24,9 @@ extn=${1:(-2)}
 
 echo $SEP
 echo "Version info:"
-cat /etc/issue
+# TODO - take into a/c diff Linux distros
+cat /etc/fedora-release
+#cat /etc/issue
 uname -r
 
 echo $SEP

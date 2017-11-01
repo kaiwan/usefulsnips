@@ -16,7 +16,8 @@
 # https://github.com/kaiwan/seals
 
 #------------------- Colors!! Yay :-) -----------------------------------------
-# Ref: https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
+# Ref:
+# https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 # [Ans by Drew Noakes]
 #--- Foreground Colors
 fg_black() { tput setaf 0 
