@@ -104,8 +104,8 @@ printf "%s\n" ${SEP}
 #for sysfile in $(find ${STARTDIR})      # 1-level find; simpler..
 for sysfile in $(find -L ${STARTDIR} -xdev -maxdepth ${MAXDEPTH})       # multi-level find; more info..
 do
-  tput bold 2>/dev/null
-  fg_white ; bg_blue
+  #tput bold 2>/dev/null
+  #fg_white ; bg_blue
   printf "%-60s " ${sysfile}
   case $(file --mime-type --brief ${sysfile}) in
 		inode/symlink) #techo ": <slink>" ; continue ;;
@@ -118,9 +118,10 @@ do
 		application/zip|application/x-xz) printf ": <zip file>\n" ; continue ;;
 		# Text files
 		text/plain|text/*)
-					color_reset ; tput bold 2>/dev/null ; fg_red ; bg_white
-					printf ": <reg file>\n"
+					color_reset ; tput bold 2>/dev/null ; fg_red #; bg_white
+					printf ": <reg file>"
 					color_reset
+					printf "\n"
 					display_file ${sysfile}
 					;;
 		# procfs files
@@ -129,15 +130,16 @@ do
 					firstdir="/$(echo "${sysfile}" |cut -d"/" -f2)"
 					#echo "firstdir=${firstdir}"
 					[ "${firstdir}"="/proc" ] && {
-					  fg_magenta ; bg_white
+					  fg_magenta #; bg_white
+					  printf "\n"
 					  display_file ${sysfile}
 					}
 					color_reset
 					;;
-		*) fg_white ; bg_blue
+		*) #fg_white ; bg_blue
 		   printf ": <-other->\n"
 		   ls -l ${sysfile} 2>/dev/null
-		   color_reset
+		   #color_reset
 		   continue ;;
   esac
   printf "%s\n" ${SEP}
