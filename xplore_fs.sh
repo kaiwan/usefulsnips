@@ -122,7 +122,7 @@ do
 					printf ": <reg file>"
 					color_reset
 					printf "\n"
-					display_file ${sysfile}
+					[ -f ${sysfile} -a -r ${sysfile} ] && display_file ${sysfile}
 					;;
 		# procfs files
 		inode/x-empty) # usually the case for procfs (pseudo)'files'
@@ -132,7 +132,8 @@ do
 					[ "${firstdir}"="/proc" ] && {
 					  fg_magenta #; bg_white
 					  printf "\n"
-					  display_file ${sysfile}
+					  [ -f ${sysfile} -a -r ${sysfile} ] && display_file ${sysfile}
+					  #display_file ${sysfile}
 					}
 					color_reset
 					;;
