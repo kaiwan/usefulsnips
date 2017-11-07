@@ -195,6 +195,12 @@ iecho ()
 {
  Echo INFO "$1"
 }
+#--------------------- b e c h o ---------------------------------------
+# Bold font Color-echo.
+becho ()
+{
+ Echo ALERT "$1"
+}
 #--------------------- a e c h o ---------------------------------------
 # ALERT-level Color-echo.
 aecho ()
