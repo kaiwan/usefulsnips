@@ -1,0 +1,60 @@
+#!/bin/bash
+# whats
+#
+# Eg. 
+#  whats gnome-terminal
+name=$(basename $0)
+[ $# -eq 0 ] && {
+  echo "usage: ${name} application [...]"
+  exit 1
+}
+SEP="--------------------------------------------------------------------------"
+
+show_type()
+{
+case $(file --mime-type --brief ${1}) in
+		inode/symlink)
+		  printf ": <soft link>\n" ; ;;
+		inode/directory)   printf ": <dir>\n" ; ;;
+		inode/socket)      printf ": <socket>\n" ; ;;
+		inode/chardevice)  printf ": <chardev>\n" ; ;;
+		inode/blockdevice) printf ": <blockdev>\n" ; ;;
+		application/x-sharedlib|*zlib) printf ": <app/shlib>\n" ; ;;
+		application/zip|application/x-xz) printf ": <zip file>\n" ; ;;
+		# Text files
+		text/plain|text/*) printf ": <reg file>\n"
+					;;
+		# procfs files
+		inode/x-empty) # usually the case for procfs (pseudo)'files'
+						   printf ": <pseudo file>\n"
+					;;
+		*)
+		   printf ": <-other-/unknown>\n"
+		   ;;
+  esac
+}
+
+### "main" ###
+for app in "$@"
+do
+  app_full=$(which ${app} 2>/dev/null)
+  # Needs to be an app
+  which ${app} >/dev/null 2>&1 || {
+     echo " [!] \"${app}\": not found (${name}: needs to be an app)"
+     continue
+  }
+  type=$(file --mime-type --brief ${app_full})
+  [ "${type}" != "application/x-sharedlib" ] && {
+     echo " [!] \"${app}\": not an application"
+     continue
+  }
+  echo -n "${SEP}
+$app :"
+  show_type ${app_full}
+  ls -lh ${app_full}
+  file ${app_full}
+  echo "${SEP}"
+  echo "ldd ${app_full} :"
+  ldd ${app_full}
+done
+exit 0
