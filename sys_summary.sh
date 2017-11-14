@@ -21,10 +21,6 @@ source ${PFX}/common.sh || {
  echo "${name}: fatal: could not source ./common.sh , aborting..."
  exit 1
 }
-#[ $# -ne 1 ] && {
-#  echo "Usage: ${name} "
-#  exit 1
-#}
 
 OUTFILE=/tmp/.$$
 
@@ -39,51 +35,44 @@ setcolor ; echo "$@" ; color_reset
 
 gather_sys()
 {
-fg_cyan ; date ; color_reset
-#echo
+color_reset
+echo "$(date)"  ; color_reset ; echo -n " "
 
 # Distribution Info
-secho "Linux Distributor:"
+becho "Linux Distributor:"
 lsb_release -a 2>/dev/null
-#echo
 
-secho "Uptime:"
+becho "Uptime:"
 w|head -n1
-#echo
 
-secho "Kernel: "
+becho "Kernel: "
 uname -r
 cat /proc/version
-#echo
 
-secho "Toolchain/compiler: "
+becho "Toolchain/compiler: "
 gcc --version|head -n1
-#echo
 
-secho "CPU:"
+becho "CPU:"
 grep "model name" /proc/cpuinfo |uniq |cut -d: -f2
 cpu_cores=$(getconf -a|grep _NPROCESSORS_ONLN|awk '{print $2}')
-grep -w -q "lm" /proc/cpuinfo && echo " 64-bit"
-egrep -w -q "vmx|smx" /proc/cpuinfo || echo " -no h/w virt support available-"
-grep -w -q "vmx" /proc/cpuinfo && echo " Intel VT-x (h/w virtualization support available)" || echo " -no h/w virt support-"
-grep -w -q "smx" /proc/cpuinfo && echo " AMD SMX (h/w virtualization support available)"
+grep -w -q "lm" /proc/cpuinfo && echo -n " 64-bit :"
+egrep -w -q "vmx|smx" /proc/cpuinfo || echo -n " -no h/w virt support available- :"
+grep -w -q "vmx" /proc/cpuinfo && echo -n " Intel VT-x (h/w virtualization support available) :" || echo -n " -no h/w virt support- :"
+grep -w -q "smx" /proc/cpuinfo && echo -n " AMD SMX (h/w virtualization support available) :"
 echo " cpu cores: ${cpu_cores}"
-#echo
 
-secho "RAM:"
+becho "RAM:"
 free -h
-#echo
 
-secho "IP address(es): " ; hostname -I
-#echo
+becho "IP address(es): " ; hostname -I
 
-secho "Battery: "
+becho "Battery: "
 acpi 2>/dev/null
 } > ${OUTFILE}
 
 start()
 {
-ShowTitle " System Info"
+ShowTitle "System Info"
 gather_sys
 
 cat ${OUTFILE}
