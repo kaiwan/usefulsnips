@@ -1,20 +1,24 @@
 #!/bin/bash
 # Simple wrapper over B Gregg's perf-tools-unstable execsnoop-perf
-PRG=execsnoop-perf
-which ${PRG} >/dev/null || {
- echo "${PRG} not found? PATH issue?"
+name=$(basename $0)
+PRG=execsnoop   #/home/kai/github_kaiwan_repos/perf-tools/execsnoop #-perf
+
+[ $(id -u) -ne 0 ] && {
+ echo "${name}: need root."
  exit 1
 }
-[ $(id -u) -ne 0 ] && {
- echo "${PRG} requires root"
+
+which ${PRG} >/dev/null || {
+#[ -x ${PRG} ] || {
+ echo "${name}: \"${PRG}\" not found? PATH issue?"
  exit 1
 }
 
 # kill any stale instance
-pkill --oldest ${PRG} #$(basename $0) 
+pkill --oldest $(basename ${PRG})
 
 MAXARGS=16
-EXECLOG=xlog
+EXECLOG=/home/kai/execlog
 HLINE="------------------------------------------------------"
 ( echo
   echo ${HLINE}
