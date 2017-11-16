@@ -5,56 +5,108 @@
 #  whats gnome-terminal
 name=$(basename $0)
 [ $# -eq 0 ] && {
-  echo "usage: ${name} application [...]"
+  echo "Usage: ${name} any-file(s) [application|txt|dir|slink|etc] [...]"
   exit 1
 }
 SEP="--------------------------------------------------------------------------"
 
+trap 'echo "user abort!" ; exit 1' 1 2
+
+SHOWN=0
+
+show_file_stat()
+{
+  #echo "${SEP}"
+  file ${1} 2>/dev/null
+  #echo "${SEP}"
+  stat ${1} 2>/dev/null
+  #echo "${SEP}"
+}
+
 show_type()
 {
-case $(file --mime-type --brief ${1}) in
+ [ ${SHOWN} -eq 1 ] && {
+    SHOWN=0
+	return
+ }
+ file $1 2>/dev/null |awk -F: '{print $2}'
+ case $(file --mime-type --brief ${1} 2>/dev/null) in
 		inode/symlink)
-		  printf ": <soft link>\n" ; ;;
-		inode/directory)   printf ": <dir>\n" ; ;;
-		inode/socket)      printf ": <socket>\n" ; ;;
-		inode/chardevice)  printf ": <chardev>\n" ; ;;
-		inode/blockdevice) printf ": <blockdev>\n" ; ;;
-		application/x-sharedlib|*zlib) printf ": <app/shlib>\n" ; ;;
-		application/zip|application/x-xz) printf ": <zip file>\n" ; ;;
+		  printf " <soft link>\n"
+		  ls -lh $1
+		  ;;
+		inode/directory)
+			show_file_stat $1
+			echo " Calculating disk space used by \"$1\" ... [pl wait] ..."
+			local dirsz=$(du -s -h $1 |awk '{print $1}')
+			echo "  ${dirsz}"
+			;;
+		inode/socket)      printf " <socket>\n"
+		    ls -lh $1
+			;;
+		inode/chardevice)  printf " <chardev>\n"
+		    ls -lh $1
+			;;
+		inode/blockdevice) printf " <blockdev>\n"
+		    ls -lh $1
+			;;
+		application/x-sharedlib|*zlib) #printf ": <application/shlib>\n"
+		    ls -lh $1
+			echo "ldd ${app_full} :"
+			ldd ${app_full}
+			;;
+		application/zip|application/x-xz) printf " <zip file>\n"
+		    ls -lh $1
+			;;
 		# Text files
-		text/plain|text/*) printf ": <reg file>\n"
-					;;
+		text/plain|text/*) printf " <regular file>\n"
+		    ls -lh $1
+			echo "[Tip: use xplore_fs to 'deep' examine the content of folders]"
+			;;
 		# procfs files
 		inode/x-empty) # usually the case for procfs (pseudo)'files'
-						   printf ": <pseudo file>\n"
-					;;
+		    printf " <pseudo file>\n"
+		    ls -lh $1
+			;;
 		*)
-		   printf ": <-other-/unknown>\n"
-		   ;;
-  esac
+		   printf "      < ?? -other-/unknown ?? >\n"
+		    ;;
+ esac
 }
 
 ### "main" ###
-for app in "$@"
+for object in "$@"
 do
-  app_full=$(which ${app} 2>/dev/null)
-  # Needs to be an app
-  which ${app} >/dev/null 2>&1 || {
-     echo " [!] \"${app}\": not found (${name}: needs to be an app)"
-     continue
-  }
-  type=$(file --mime-type --brief ${app_full})
-  [ "${type}" != "application/x-sharedlib" ] && {
-     echo " [!] \"${app}\": not an application"
-     continue
-  }
-  echo -n "${SEP}
-$app :"
-  show_type ${app_full}
-  ls -lh ${app_full}
-  file ${app_full}
-  echo "${SEP}"
-  echo "ldd ${app_full} :"
-  ldd ${app_full}
+
+  echo "<<<-----  what's \"${object}\"  ----->>>"
+
+  # Is it an app?
+  which ${object} >/dev/null 2>&1 || {
+     echo -n ""  # \"${object}\": not an object"
+  } && {  # it's an app
+     app_full=$(which ${object} 2>/dev/null)
+     type=$(file --mime-type --brief ${app_full} 2>/dev/null)
+	 [ -z "${type}" ] && {
+		show_type ${object}
+        echo "${SEP}"
+		continue
+	 }
+	 echo " <${type}>"  # could be a shell script
+     ls -lh ${app_full}
+	 SHOWN=1
+     if [ "${type}" != "application/x-sharedlib" ] ; then
+        echo -n ""  # "${SEP}"
+        #continue
+     else
+	    echo "$1 : application/x-sharedlib"
+		echo "ldd ${app_full} :"
+	    ldd ${app_full}
+        echo "${SEP}"
+        continue
+	 fi
+ }
+
+ show_type ${object}
+ echo "${SEP}"
 done
 exit 0
