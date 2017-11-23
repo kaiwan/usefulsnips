@@ -85,6 +85,11 @@ alias sd='sudo /bin/bash'
   }
 }
 
+# Git !
+alias gdiff='git diff -r'
+alias gfiles='git diff --name-status -r'
+alias gstat='git status ; echo ; git diff --stat -r'
+
 ###
 # Some useful functions
 ###
