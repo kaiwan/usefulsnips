@@ -2,9 +2,13 @@
 " ref: http://dougblack.io/words/a-good-vimrc.html
 
 syntax enable
-set tabstop=4
-set softtabstop=4
-"set expandtab       " tabs are spaces
+
+" Linux kernel style
+" see: https://kernelnewbies.org/FirstKernelPatch
+set tabstop=8
+set softtabstop=8
+set shiftwidth=8
+set noexpandtab
 
 set number
 set showcmd             " show command in bottom bar
