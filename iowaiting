@@ -22,15 +22,24 @@ EOM
 DLY=5  # sec
 iowait_dstate()
 {
+local i=1 whensec=60
+
+echo "||| $(date) |||"
 while [ true ]
 do 
 	ps -eo state,pid,cmd | grep "^D"
-	echo "----- $(date)---"
+	[ $(($i*${DLY})) -ge ${whensec} ] && {
+		echo "||| $(date) |||"
+		i=0
+	} || {
+		echo "---"
+	}
 	sleep ${DLY}
+	let i=i+1
 done
 }
 
-[ $1 = "-h" ] && {
+[ "$1" = "-h" ] && {
 	usage
 	exit 0
 }
