@@ -16,7 +16,6 @@ SHOWN=0
 
 show_file_stat()
 {
-  #echo "${SEP}"
   file ${1} 2>/dev/null
   #echo "${SEP}"
   stat ${1} 2>/dev/null
@@ -27,13 +26,15 @@ show_type()
 {
  [ ${SHOWN} -eq 1 ] && {
     SHOWN=0
-	return
+    return
  }
+
  file $1 2>/dev/null |awk -F: '{print $2}'
+ ls -lh $1
+
  case $(file --mime-type --brief ${1} 2>/dev/null) in
 		inode/symlink)
 		  printf " <soft link>\n"
-		  ls -lh $1
 		  ;;
 		inode/directory)
 			show_file_stat $1
@@ -42,31 +43,24 @@ show_type()
 			echo "  ${dirsz}"
 			;;
 		inode/socket)      printf " <socket>\n"
-		    ls -lh $1
 			;;
 		inode/chardevice)  printf " <chardev>\n"
-		    ls -lh $1
 			;;
 		inode/blockdevice) printf " <blockdev>\n"
-		    ls -lh $1
 			;;
 		application/x-sharedlib|*zlib) #printf ": <application/shlib>\n"
-		    ls -lh $1
 			echo "ldd ${app_full} :"
 			ldd ${app_full}
 			;;
 		application/zip|application/x-xz) printf " <zip file>\n"
-		    ls -lh $1
 			;;
 		# Text files
 		text/plain|text/*) printf " <regular file>\n"
-		    ls -lh $1
 			echo "[Tip: use xplore_fs to 'deep' examine the content of folders]"
 			;;
 		# procfs files
 		inode/x-empty) # usually the case for procfs (pseudo)'files'
 		    printf " <pseudo file>\n"
-		    ls -lh $1
 			;;
 		*)
 		   printf "      < ?? -other-/unknown ?? >\n"
