@@ -1,0 +1,38 @@
+#!/bin/bash
+# iowaiting
+# 
+# High IOwait time by CPU(s) _could_ be caused by process(es) in Uninterruptible
+# Sleep (D) state. This simple script gives us an idea of which processes are
+# possibly causing long IOwait times.
+#  Ref: https://blog.pregos.info/wp-content/uploads/2010/09/iowait.txt
+#
+# A part of the 'botique' :-) utilities and stuff provided by the 'usefulsnips'
+# package, available for free right here:
+# https://github.com/kaiwan/usefulsnips
+#
+# (c) Kaiwan N Billimoria  <kaiwan@kaiwantech.com>
+name=$(basename $0)
+usage()
+{
+cat << EOM
+Usage: ${name} [delay-in-sec]
+EOM
+}
+
+DLY=5  # sec
+iowait_dstate()
+{
+while [ true ]
+do 
+	ps -eo state,pid,cmd | grep "^D"
+	echo "----- $(date)---"
+	sleep ${DLY}
+done
+}
+
+[ $1 = "-h" ] && {
+	usage
+	exit 0
+}
+[ $# -eq 1 ] && DLY=$1
+iowait_dstate ${DLY}
