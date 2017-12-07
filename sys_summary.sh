@@ -40,7 +40,7 @@ echo "$(date)"  ; color_reset ; echo -n " "
 
 # Distribution Info
 becho "Linux Distributor:"
-lsb_release -a 2>/dev/null
+lsb_release -a |grep "Description" |cut -d: -f2 2>/dev/null
 
 becho "Uptime:"
 w|head -n1
