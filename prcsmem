@@ -30,29 +30,29 @@ source ${PFX}/common.sh || {
 ########### Functions follow #######################
 
 
-start()
+smem_show()
 {
-# 6th field is USS
-# 7th field is PSS
-# 8th field is RSS
+# 5th field is USS
+# 6th field is PSS
+# 7th field is RSS
 
 printf "${name}: inititalizing, pl wait ...\r"
 local nthrds=$(numthreads "$1")
 local nprcs=$(smem |egrep "$1" |grep -v grep|wc -l)
 #[ ${nprcs} -eq 1 ] && nthrds=$(ls /proc/$(pidof $1)/task/ |wc -w)
 
-printf "${name}: calculating total USS memory in use by \"$1\" ${nprcs}/${nthrds} process(es)/thread(s), pl wait ...\r"
-local szKB_USS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$6} END {printf "%ld\n", t}')
+printf "${name}: calculating total USS memory in use by \"$1\" ${nprcs} process(es), ${nthrds} thread(s), pl wait ...\r"
+local szKB_USS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$5} END {printf "%ld\n", t}')
 
 nprcs=$(smem |egrep "$1" |grep -v grep|wc -l)
 nthrds=$(numthreads "$1")
-printf "${name}: calculating total PSS memory in use by \"$1\" ${nprcs}/${nthrds} process(es)/thread(s), pl wait ...\r"
-local szKB_PSS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$7} END {printf "%ld\n", t}')
+printf "${name}: calculating total PSS memory in use by \"$1\" ${nprcs} process(es), ${nthrds} thread(s), pl wait ...\r"
+local szKB_PSS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$6} END {printf "%ld\n", t}')
 
 nprcs=$(smem |egrep "$1" |grep -v grep|wc -l)
 nthrds=$(numthreads "$1")
-printf "${name}: calculating total RSS memory in use by \"$1\" ${nprcs}/${nthrds} process(es)/thread(s), pl wait ...\r"
-local szKB_RSS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$8} END {printf "%ld\n", t}')
+printf "${name}: calculating total RSS memory in use by \"$1\" ${nprcs} process(es), ${nthrds} thread(s), pl wait ...\r"
+local szKB_RSS=$(smem|egrep "$1" |grep -v grep |awk '{t+=$7} END {printf "%ld\n", t}')
 
 nthrds=$(numthreads "$1")
 printf "NOTE- total memory currently in use by the set of ${nprcs} \"$1\" processes (${nthrds} threads):\n"
@@ -65,6 +65,68 @@ pr_sz_human "PSS (Proportional Size)" ${tmp}
 local tmp=$((${szKB_RSS}*1024)) # bytes
 pr_sz_human "RSS (Resident Size)" ${tmp}
 }
+
+threads_showmem()
+{
+	local pid PID tid thrdname
+	local entry latchar len grepfile
+
+	pid=$(pgrep --exact $1) || {
+		echo "Couldn't get PID for process \"$1\", aborting..."
+		exit 1
+	}
+
+	echo "
+--- Thread-Level View ---
+"
+	### The application could be multi-process as well as multithreaded.
+	# So, outer loop over possibly multiple processes ...
+	#export IFS=$'\n'
+for PID in ${pid}
+do
+	becho "$1 :: PID = ${PID}"
+	becho "  Thread-Name      :     TID : VmSize (KB) : VmRSS (KB) :  VmStk (KB)"
+	# ... and for each process, inner loop over possibly multiple threads ..
+	export IFS=$' '
+	for entry in $(ls --color=never -m /proc/${PID}/task)
+	do
+		lastchar=${entry: -1}
+		#echo "entry=${entry} : lastchar = ${lastchar}"
+		[ "${lastchar}" = "," ] && {
+			len=${#entry}
+			let len=len-1
+			tid=${entry:0:${len}}
+			#echo "tid = $tid"
+			grepfile=/proc/${PID}/task/${tid}/status
+			thrdname=$(cat /proc/${PID}/task/${tid}/comm 2>/dev/null)
+		} || {
+			tid=${entry}
+			grepfile=/proc/${PID}/task/${entry}/status
+			thrdname=$(cat /proc/${PID}/task/${entry}/comm 2>/dev/null)
+		}
+		#echo "### grepfile = ${grepfile}"
+		#echo " n=${thrdname} len=${#thrdname}"
+		[ -z "${thrdname}" ] && printf "       ---          :" || printf "%-20s:" "${thrdname}"
+		printf "%9d:" ${tid} 2>/dev/null
+
+		#--- Ref: https://www.kernel.org/doc/Documentation/filesystems/proc.txt
+		#  VmSize                      total program size
+		local VmSize=$(grep "VmSize" ${grepfile}  2>/dev/null |cut -d: -f2 |awk '{print $1}' 2>/dev/null)
+		[ -z "${VmSize}" ] && printf "         --- :" || printf "%13d:" ${VmSize}
+
+		#  VmRSS        size of memory portions. It contains the three
+		#               following parts (VmRSS = RssAnon + RssFile + RssShmem)
+		local VmRSS=$(grep "VmRSS" ${grepfile}  2>/dev/null |cut -d: -f2 |awk '{print $1}' 2>/dev/null)
+		[ -z "${VmRSS}" ] && printf "        --- :" || printf "%12d:" ${VmRSS}
+
+		#  VmStk                       size of stack segments
+		local VmStk=$(grep "VmStk" ${grepfile}  2>/dev/null |cut -d: -f2 |awk '{print $1}' 2>/dev/null)
+		[ -z "${VmStk}" ] && printf "         --- \n" || printf "%12d\n" ${VmStk}
+	done
+done
+
+}
+
 
 ##### 'main' : execution starts here #####
 
@@ -90,5 +152,14 @@ pgrep $1 >/dev/null || {
  echo "${name}: process \"$1\" does not exist? Aborting..."
  exit 1
 }
-start $1
+
+# RELOOK / TODO !
+# -use 'threads' count under /proc/<pid>/status instead
+nthrds=$(numthreads "$1")
+nprcs=$(smem |egrep "$1" |grep -v grep|wc -l)
+echo "--- $1 :: ${nprcs} processes consisting of ${nthrds} threads ::"
+
+smem_show $1
+threads_showmem $1
+
 exit 0
