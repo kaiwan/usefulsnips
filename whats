@@ -73,6 +73,7 @@ for object in "$@"
 do
 
   echo "<<<-----  what's \"${object}\"  ----->>>"
+  file $object 2>/dev/null
 
   # Is it an app?
   which ${object} >/dev/null 2>&1 || {
@@ -82,11 +83,11 @@ do
      type=$(file --mime-type --brief ${app_full} 2>/dev/null)
 	 [ -z "${type}" ] && {
 		show_type ${object}
-        echo "${SEP}"
+	        echo "${SEP}"
 		continue
 	 }
 	 echo " <${type}>"  # could be a shell script
-     ls -lh ${app_full}
+	ls -lh ${app_full}
 	 SHOWN=1
      if [ "${type}" != "application/x-sharedlib" ] ; then
         echo -n ""  # "${SEP}"
