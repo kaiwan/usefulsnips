@@ -14,6 +14,10 @@ trap 'echo "user abort!" ; exit 1' 1 2
 
 SHOWN=0
 
+# TODO :
+# - parse builtin functions too! by set |grep $1
+#   eg. diskledtoggle()
+
 show_file_stat()
 {
   file ${1} 2>/dev/null
