@@ -38,6 +38,9 @@ gather_sys()
 color_reset
 echo "$(date)"  ; color_reset ; echo -n " "
 
+becho "hostnamectl:"
+hostnamectl
+
 # Distribution Info
 becho "Linux Distributor:"
 lsb_release -a |grep "Description" |cut -d: -f2 2>/dev/null
