@@ -15,12 +15,11 @@ if [ $# -ne 1 ]; then
 	echo "Usage: $name name-of-kernel-module-file (without the .c)"
 	exit 1
 fi
-extn=${1:(-2)}
-#echo "extn = ${extn}"
-[ "${extn}" = ".c" ] && {
-	echo "Usage: $name name-of-kernel-module-file ONLY (do NOT put the .c)"
+
+if [[ "${1}" = *"."* ]]; then
+	echo "Usage: $name name-of-kernel-module-file ONLY (do NOT put any extension)."
 	exit 1
-}
+fi
 
 echo $SEP
 echo "Version info:"
