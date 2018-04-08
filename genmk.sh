@@ -3,17 +3,37 @@
 # generate Makefile rules for the book src..
 name=$(basename $0)
 
+usage()
+{
+	echo "Usage: ${name} only-this-target{0|1} filename(s)-without-.c_extension
+ The first parameter should be 0 or 1; 
+  0 implies : generate the complete Makefile along with the target(s)
+  1 implies : generate only the specific target(s) specified Makefile snippet
+ The second parameter onward are the file(s) to generate via make;
+  *Ensure that you put only the file(s) name NOT any extension*
+"
+}
+
 ONLY_TARGET=0
 [ $# -lt 2 ] && {
-	echo "Usage: ${name} filename-without-.c_extension only-this-target{0|1}"
+	usage
 	exit 1
 }
-if [[ "${1}" = *"."* ]]; then
-	echo "Usage: $name name-of-file ONLY (do NOT put any extension)."
+[ "$1" != "0" -a "$1" != "1" ] && {
+	usage
 	exit 1
-fi
-[ "$2" = "1" ] && ONLY_TARGET=1
+}
+[ "$1" = "1" ] && ONLY_TARGET=1
 
+# Check all params for a "."
+for param in "$@"
+do
+	if [[ "${param}" = *"."* ]]; then
+		echo "*** Error: do Not use any extension or \".\", thank you! ***"
+		usage
+		exit 1
+	fi
+done
 #echo "num=$#"
 
 #[ -f Makefile ] && ALL_LINE=$(grep "ALL *\:=" Makefile)
@@ -57,7 +77,12 @@ for rulename in "$@"
 do
 	#echo "rulename = ${rulename}"
 
-	[ ${num} -ge $# ] && break
+	[ ${num} -eq 1 ] && {
+		let num=num+1
+		continue
+	}
+	#[ ${num} -ge $# ] && break
+
 	RULE="
 ${rulename}: common.o ${rulename}.o
 	\${CC} \${CFLAGS} -o ${rulename} ${rulename}.c common.o
