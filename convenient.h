@@ -56,6 +56,7 @@
            pr_info(pr_fmt(string), ##args);                        \
 } while (0)
 #endif
+#endif				/* end ifdef __KERNEL__ at the top */
 
 /*------------------------ MSG, QP ------------------------------------*/
 #ifdef DEBUG
@@ -100,7 +101,7 @@
 #define QPDS
 #endif
 
-//#ifdef __KERNEL__
+#ifdef __KERNEL__
 /*------------------------ PRINT_CTX ---------------------------------*/
 /* 
  An interesting way to print the context info:
@@ -168,7 +169,7 @@
 	}                                                                                    \
 } while (0)
 #endif
-#endif				/* end ifdef __KERNEL__ at the top */
+#endif
 
 /*------------------------ assert ---------------------------------------
  * Hey you, careful! 
@@ -197,7 +198,8 @@ static inline void beep(int what)
 #ifdef __KERNEL__
 	DBGPRINT("%c", (char)what);
 #else
-	(void)printf("%c", (char)what);
+	char buf=(char)what;
+	(void)write(STDOUT_FILENO, &buf, 1);
 #endif
 }
 
@@ -214,8 +216,8 @@ static inline void beep(int what)
 	for(for_index=0;for_index<loop_count;for_index++) {                    \
 		beep((val));                                                   \
 		c++;                                                           \
-			for(inner_index=0;inner_index<HZ*1000*8;inner_index++) \
-				for(m=0;m<50;m++);                             \
+		for(inner_index=0;inner_index<HZ*1000*8;inner_index++)         \
+			for(m=0;m<50;m++);                                     \
 		}                                                              \
 	/*printf("c=%d\n",c);*/                                                \
 }
