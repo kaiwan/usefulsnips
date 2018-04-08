@@ -24,7 +24,7 @@ fi
 echo $SEP
 echo "Version info:"
 # TODO - take into a/c diff Linux distros
-cat /etc/fedora-release
+#cat /etc/fedora-release
 #cat /etc/issue
 uname -r
 
