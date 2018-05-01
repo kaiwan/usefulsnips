@@ -51,11 +51,11 @@ CL=\${CROSS_COMPILE}clang
 CFLAGS=-Wall
 CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
+CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory -fPIE -pie
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
 
 all: \${ALL}
-CB_FILES := *.[ch]
-"
+CB_FILES := *.[ch]"
 
 [ ${ONLY_TARGET} -eq 0 ] && {
 	echo "${MVARS_TOP}"
@@ -83,20 +83,19 @@ do
 	}
 	#[ ${num} -ge $# ] && break
 
-	RULE="
-${rulename}: common.o ${rulename}.o
+	RULE="${rulename}: common.o ${rulename}.o
 	\${CC} \${CFLAGS} -o ${rulename} ${rulename}.c common.o
 ${rulename}_dbg.o: ${rulename}.c
 	\${CC} \${CFLAGS_DBG} -c ${rulename}.c -o ${rulename}_dbg.o
 ${rulename}_dbg: ${rulename}_dbg.o common_dbg.o
 	\${CC} -o ${rulename}_dbg ${rulename}_dbg.o common_dbg.o"
 
-	RULE_SANITZ="
-	\${CL} \${CFLAGS_DBG_ASAN} -o ${rulename}_asan ${rulename}_dbg.o common_dbg.o
+	RULE_SANITZ="	\${CL} \${CFLAGS_DBG_ASAN} -o ${rulename}_asan ${rulename}_dbg.o common_dbg.o
 	\${CL} \${CFLAGS_DBG_UB} -o ${rulename}_ub ${rulename}_dbg.o common_dbg.o
 	\${CL} \${CFLAGS_DBG_MSAN} -o ${rulename}_msan ${rulename}_dbg.o common_dbg.o"
 
-	echo "${RULE}${RULE_SANITZ}"
+	echo "${RULE}"
+	echo "${RULE_SANITZ}"
 	echo
 
 	let num=num+1
