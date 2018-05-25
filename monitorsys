@@ -86,6 +86,9 @@ choices=$(zenity --title="kaiwanTECH : Simple Linux Monitoring" --list --text="S
 		"5" "iftop" 2>/dev/null)
 echo "${choices}"
 
+# wayland: allow root to run gui apps too!
+xhost si:localuser:root
+
 # iotop
 echo "${choices}" | grep -w iotop >/dev/null 2>&1
 [ $? -eq 0 ] && lxterminal --working-directory=${HOME}/ --command="iotop" --title="IOTOP" --geometry=90x10 &
