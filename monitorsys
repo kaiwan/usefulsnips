@@ -106,7 +106,7 @@ echo "${choices}" | grep -w vmstat >/dev/null 2>&1
 # iftop
 echo "${choices}" | grep -w iftop >/dev/null 2>&1
 [ $? -eq 0 ] && {
-   netif=$(ifconfig |grep "^enp"|awk '{print $1}')
+   netif=$(route | grep '^default' | grep -o '[^ ]*$')
    intf=$(zenity --title="Specify net interface" --entry --text="Pl specify Network interface to monitor:" --entry-text="${netif}" 2>/dev/null)
    [ ! -z ${intf} ] && lxterminal --working-directory=${HOME}/ --command="iftop -i ${intf}" --title="IFTOP ${intf}" --geometry=85x15 &
 }
