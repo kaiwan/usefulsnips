@@ -50,9 +50,13 @@ done
   exit 1
 }
 
-if [ `id -u` -ne 0 ]; then
-  echo "${name}: need root, invoking script via sudo now ..."
-  exec sudo $(which monitorsys)
+if [ $(id -u) -ne 0 ]; then
+	# Get current script's pathname
+	pid=$(ps -C ${name} -o pid=)
+	pathnm=$(ps -p ${pid} -o command= |awk '{print $2}')
+	#echo "name=${name} pathnm=${pathnm}"
+	echo "${name}: need root, invoking script via sudo now ..."
+	exec sudo ${pathnm}
 fi
 
 # CLI or GUI mode?
