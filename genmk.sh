@@ -127,7 +127,7 @@ do
 
 	# TODO : don't repeat the common_dbg_* rules when >1 targets 
 
-	RULE="${rulename}.o:
+	RULE="${rulename}.o: ${rulename}.c
 	\${CC} \${CFLAGS} -c ${rulename}.c -o ${rulename}.o
 ${rulename}: common.o ${rulename}.o
 	\${CC} \${CFLAGS} -o ${rulename} ${rulename}.o common.o
