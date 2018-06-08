@@ -36,8 +36,6 @@ do
 done
 #echo "num=$#"
 
-#[ -f Makefile ] && ALL_LINE=$(grep "ALL *\:=" Makefile)
-
 # Build list of all targets for the 'ALL' directive
 TARGETS=""
 i=1
@@ -93,12 +91,25 @@ CB_FILES := *.[ch]"
 	echo
 }
 
-RULE="common.o: ../common.c ../common.h
-	\${CC} \${CFLAGS} -c ../common.c -o common.o
-common_dbg.o: ../common.c ../common.h
+RULE_COMMON="common.o: ../common.c ../common.h
+	\${CC} \${CFLAGS} -c ../common.c -o common.o"
+RULE_COMMON_DBG="common_dbg.o: ../common.c ../common.h
 	\${CC} \${CFLAGS_DBG} -c ../common.c -o common_dbg.o"
+RULE_COMMON_DBG_ASAN="common_dbg_asan.o: ../common.c ../common.h
+	\${CL} \${CFLAGS_DBG_ASAN} -c ../common.c -o common_dbg_asan.o"
+RULE_COMMON_DBG_UB="common_dbg_ub.o: ../common.c ../common.h
+	\${CL} \${CFLAGS_DBG_UB} -c ../common.c -o common_dbg_ub.o"
+RULE_COMMON_DBG_MSAN="common_dbg_msan.o: ../common.c ../common.h
+	\${CL} \${CFLAGS_DBG_MSAN} -c ../common.c -o common_dbg_msan.o"
+
 [ ${ONLY_TARGET} -eq 0 ] && {
-	echo "${RULE}"
+	echo "${RULE_COMMON}
+${RULE_COMMON_DBG}
+
+#--- Sanitizers (use clang): common_dbg_*
+${RULE_COMMON_DBG_ASAN}
+${RULE_COMMON_DBG_UB}
+${RULE_COMMON_DBG_MSAN}"
 	echo
 }
 
@@ -130,22 +141,17 @@ ${rulename}_dbg.o: ${rulename}.c
 ${rulename}_dbg: ${rulename}_dbg.o common_dbg.o
 	\${CC} \${CFLAGS_DBG} -o ${rulename}_dbg ${rulename}_dbg.o common_dbg.o
 
-common_dbg_asan.o: ../common.c ../common.h
-	\${CL} \${CFLAGS_DBG_ASAN} -c ../common.c -o common_dbg_asan.o
+#--- Sanitizers (use clang): <foo>_dbg_[asan|ub|msan]
 ${rulename}_dbg_asan.o: common_dbg_asan.o
 	\${CL} \${CFLAGS_DBG_ASAN} -c ${rulename}.c -o ${rulename}_dbg_asan.o common_dbg_asan.o
 ${rulename}_dbg_asan: ${rulename}_dbg_asan.o common_dbg_asan.o
 	\${CL} \${CFLAGS_DBG_ASAN} -o ${rulename}_dbg_asan ${rulename}_dbg_asan.o common_dbg_asan.o
 
-common_dbg_ub.o: ../common.c ../common.h
-	\${CL} \${CFLAGS_DBG_UB} -c ../common.c -o common_dbg_ub.o
 ${rulename}_dbg_ub.o: common_dbg_ub.o
 	\${CL} \${CFLAGS_DBG_UB} -c ${rulename}.c -o ${rulename}_dbg_ub.o common_dbg_ub.o
 ${rulename}_dbg_ub: ${rulename}_dbg_ub.o common_dbg_ub.o
 	\${CL} \${CFLAGS_DBG_UB} -o ${rulename}_dbg_ub ${rulename}_dbg_ub.o common_dbg_ub.o
 
-common_dbg_msan.o: ../common.c ../common.h
-	\${CL} \${CFLAGS_DBG_MSAN} -c ../common.c -o common_dbg_msan.o
 ${rulename}_dbg_msan.o: common_dbg_msan.o
 	\${CL} \${CFLAGS_DBG_MSAN} -c ${rulename}.c -o ${rulename}_dbg_msan.o common_dbg_msan.o
 ${rulename}_dbg_msan: ${rulename}_dbg_msan.o common_dbg_msan.o
