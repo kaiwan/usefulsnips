@@ -1,6 +1,9 @@
 #!/bin/bash
 # genmk
-# generate Makefile rules for the book src..
+# Generate a simple Makefile for a typical 'C' systems application
+# running on Linux.
+#
+# (c) 2018 kaiwanTECH
 name=$(basename $0)
 
 usage()
@@ -66,7 +69,7 @@ MVARS_TOP="# Makefile
 #  ASSUMPTIONS ::
 #   1. the convenience files ../common.h and ../common.c
 #      are present
-#   3. the 'clang'/LLVM compiler is installed.
+#   3. the clang/LLVM compiler is installed.
 #
 #  (c) Kaiwan NB, kaiwanTECH
 #  License: MIT
