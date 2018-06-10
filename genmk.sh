@@ -120,9 +120,9 @@ ${RULE_COMMON_DBG_MSAN}"
 
 # Makefile body
 num=1
-for rulename in "$@"
+for filename in "$@"
 do
-	#echo "rulename = ${rulename}"
+	#echo "filename = ${filename}"
 
 	[ ${num} -eq 1 ] && {
 		let num=num+1
@@ -132,31 +132,31 @@ do
 
 	# TODO : don't repeat the common_dbg_* rules when >1 targets 
 
-	RULE="${rulename}.o: ${rulename}.c
-	\${CC} \${CFLAGS} -c ${rulename}.c -o ${rulename}.o
-${rulename}: common.o ${rulename}.o
-	\${CC} \${CFLAGS} -o ${rulename} ${rulename}.o common.o
+	RULE="${filename}.o: ${filename}.c
+	\${CC} \${CFLAGS} -c ${filename}.c -o ${filename}.o
+${filename}: common.o ${filename}.o
+	\${CC} \${CFLAGS} -o ${filename} ${filename}.o common.o
 
-${rulename}_dbg.o: ${rulename}.c
-	\${CC} \${CFLAGS_DBG} -c ${rulename}.c -o ${rulename}_dbg.o
-${rulename}_dbg: ${rulename}_dbg.o common_dbg.o
-	\${CC} \${CFLAGS_DBG} -o ${rulename}_dbg ${rulename}_dbg.o common_dbg.o
+${filename}_dbg.o: ${filename}.c
+	\${CC} \${CFLAGS_DBG} -c ${filename}.c -o ${filename}_dbg.o
+${filename}_dbg: ${filename}_dbg.o common_dbg.o
+	\${CC} \${CFLAGS_DBG} -o ${filename}_dbg ${filename}_dbg.o common_dbg.o
 
 #--- Sanitizers (use clang): <foo>_dbg_[asan|ub|msan]
-${rulename}_dbg_asan.o: ${rulename}.c
-	\${CL} \${CFLAGS_DBG_ASAN} -c ${rulename}.c -o ${rulename}_dbg_asan.o
-${rulename}_dbg_asan: ${rulename}_dbg_asan.o common_dbg_asan.o
-	\${CL} \${CFLAGS_DBG_ASAN} -o ${rulename}_dbg_asan ${rulename}_dbg_asan.o common_dbg_asan.o
+${filename}_dbg_asan.o: ${filename}.c
+	\${CL} \${CFLAGS_DBG_ASAN} -c ${filename}.c -o ${filename}_dbg_asan.o
+${filename}_dbg_asan: ${filename}_dbg_asan.o common_dbg_asan.o
+	\${CL} \${CFLAGS_DBG_ASAN} -o ${filename}_dbg_asan ${filename}_dbg_asan.o common_dbg_asan.o
 
-${rulename}_dbg_ub.o: ${rulename}.c
-	\${CL} \${CFLAGS_DBG_UB} -c ${rulename}.c -o ${rulename}_dbg_ub.o
-${rulename}_dbg_ub: ${rulename}_dbg_ub.o common_dbg_ub.o
-	\${CL} \${CFLAGS_DBG_UB} -o ${rulename}_dbg_ub ${rulename}_dbg_ub.o common_dbg_ub.o
+${filename}_dbg_ub.o: ${filename}.c
+	\${CL} \${CFLAGS_DBG_UB} -c ${filename}.c -o ${filename}_dbg_ub.o
+${filename}_dbg_ub: ${filename}_dbg_ub.o common_dbg_ub.o
+	\${CL} \${CFLAGS_DBG_UB} -o ${filename}_dbg_ub ${filename}_dbg_ub.o common_dbg_ub.o
 
-${rulename}_dbg_msan.o: ${rulename}.c
-	\${CL} \${CFLAGS_DBG_MSAN} -c ${rulename}.c -o ${rulename}_dbg_msan.o
-${rulename}_dbg_msan: ${rulename}_dbg_msan.o common_dbg_msan.o
-	\${CL} \${CFLAGS_DBG_MSAN} -o ${rulename}_dbg_msan ${rulename}_dbg_msan.o common_dbg_msan.o"
+${filename}_dbg_msan.o: ${filename}.c
+	\${CL} \${CFLAGS_DBG_MSAN} -c ${filename}.c -o ${filename}_dbg_msan.o
+${filename}_dbg_msan: ${filename}_dbg_msan.o common_dbg_msan.o
+	\${CL} \${CFLAGS_DBG_MSAN} -o ${filename}_dbg_msan ${filename}_dbg_msan.o common_dbg_msan.o"
 
 
 	echo "${RULE}"
