@@ -22,3 +22,5 @@ set incsearch           " search as characters are entered
 set hlsearch            " highlight matches
 " turn off search highlight
 nnoremap <leader><space> :nohlsearch<CR>
+colorscheme zellner
+
