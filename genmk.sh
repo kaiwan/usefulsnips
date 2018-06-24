@@ -69,7 +69,7 @@ MVARS_TOP="# Makefile
 #  ASSUMPTIONS ::
 #   1. the convenience files ../common.h and ../common.c
 #      are present
-#   3. the clang/LLVM compiler is installed.
+#   2. the clang/LLVM compiler is installed.
 #
 #  (c) Kaiwan NB, kaiwanTECH
 #  License: MIT
