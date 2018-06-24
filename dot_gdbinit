@@ -12,7 +12,7 @@
 #----------------------------------------------------------------------
 set history save on
 set history filename ~/.gdb_history
-set output-radix 16
+#set output-radix 16
 
 # UPDATE vmlinux location below
 #add-auto-load-safe-path <...>/linux-4.9.1/scripts/gdb/vmlinux-gdb.py
@@ -36,7 +36,7 @@ end
 
 #----------------------------------------------------------------------
 ###----Useful macros from "Embedded Linux Primer" (c) by Chris Hallinan.
-###### MAY NOT WORK on recent kernels !!! #############
+###### WARNING!!! MAY NOT WORK on recent kernels !!! #############
 # ps
 define ps
    # Print column headers
