@@ -7,5 +7,6 @@
 # echo ".git missing, aborting..."
 # exit 1
 #}
-git --no-pager log --pretty=format:"%h %ad | %s%d [%an]" --date=short --decorate
+git --no-pager log --pretty=format:"%h: %an, %ad : %s" --stat
+#git --no-pager log --pretty=format:"%h %ad | %s%d [%an]" --date=short --decorate
 echo
