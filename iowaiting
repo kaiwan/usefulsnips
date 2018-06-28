@@ -19,7 +19,7 @@ Usage: ${name} [delay-in-sec]
 EOM
 }
 
-DLY=5  # sec
+DLY=2 #5  # sec
 iowait_dstate()
 {
 local i=1 whensec=60
