@@ -93,7 +93,7 @@ CFLAGS_DBG_MSAN=\${CFLAGS_DBG} -fsanitize=memory
 CFLAGS_DBG_UB=\${CFLAGS_DBG} -fsanitize=undefined
 
 LINKIN=
- #-lrt
+   # set as required to libraries to link in; f.e.  -lrt
 
 all: \${ALL}
 CB_FILES := *.[ch]"
@@ -118,7 +118,7 @@ RULE_COMMON_DBG_MSAN="common_dbg_msan.o: ../common.c ../common.h
 	echo "${RULE_COMMON}
 ${RULE_COMMON_DBG}
 
-#--- Sanitizers (use clang): common_dbg_*
+ #--- Sanitizers (use clang): common_dbg_*
 ${RULE_COMMON_DBG_ASAN}
 ${RULE_COMMON_DBG_UB}
 ${RULE_COMMON_DBG_MSAN}"
@@ -135,21 +135,19 @@ do
 		let num=num+1
 		continue
 	}
-	#[ ${num} -ge $# ] && break
 
-	# TODO : don't repeat the common_dbg_* rules when >1 targets 
-
-	RULE="${filename}.o: ${filename}.c
+	RULE="#--- Target :: ${filename}
+${filename}.o: ${filename}.c
 	\${CC} \${CFLAGS} -c ${filename}.c -o ${filename}.o
 ${filename}: common.o ${filename}.o
-	\${CC} \${CFLAGS} -o ${filename} ${filename}.o common.o \${LINKIN}
+	\${CC} -o ${filename} ${filename}.o common.o \${LINKIN}
 
 ${filename}_dbg.o: ${filename}.c
 	\${CC} \${CFLAGS_DBG} -c ${filename}.c -o ${filename}_dbg.o
 ${filename}_dbg: ${filename}_dbg.o common_dbg.o
-	\${CC} \${CFLAGS_DBG} -o ${filename}_dbg ${filename}_dbg.o common_dbg.o \${LINKIN}
+	\${CC} -o ${filename}_dbg ${filename}_dbg.o common_dbg.o \${LINKIN}
 
-#--- Sanitizers (use clang): <foo>_dbg_[asan|ub|msan]
+ #--- Sanitizers for ${filename} :: (use clang): <foo>_dbg_[asan|ub|msan]
 ${filename}_dbg_asan.o: ${filename}.c
 	\${CL} \${CFLAGS_DBG_ASAN} -c ${filename}.c -o ${filename}_dbg_asan.o
 ${filename}_dbg_asan: ${filename}_dbg_asan.o common_dbg_asan.o
