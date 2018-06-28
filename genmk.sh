@@ -3,7 +3,7 @@
 # Generate a simple Makefile for a typical 'C' systems application
 # running on Linux.
 #
-# (c) 2018 kaiwanTECH
+# (c) 2018 Kaiwan N Billimoria, kaiwanTECH
 name=$(basename $0)
 
 usage()
@@ -88,6 +88,9 @@ CFLAGS_DBG_ASAN=\${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_MSAN=\${CFLAGS_DBG} -fsanitize=memory
 CFLAGS_DBG_UB=\${CFLAGS_DBG} -fsanitize=undefined
 
+LINKIN=
+ #-lrt
+
 all: \${ALL}
 CB_FILES := *.[ch]"
 
@@ -135,28 +138,28 @@ do
 	RULE="${filename}.o: ${filename}.c
 	\${CC} \${CFLAGS} -c ${filename}.c -o ${filename}.o
 ${filename}: common.o ${filename}.o
-	\${CC} \${CFLAGS} -o ${filename} ${filename}.o common.o
+	\${CC} \${CFLAGS} -o ${filename} ${filename}.o common.o \${LINKIN}
 
 ${filename}_dbg.o: ${filename}.c
 	\${CC} \${CFLAGS_DBG} -c ${filename}.c -o ${filename}_dbg.o
 ${filename}_dbg: ${filename}_dbg.o common_dbg.o
-	\${CC} \${CFLAGS_DBG} -o ${filename}_dbg ${filename}_dbg.o common_dbg.o
+	\${CC} \${CFLAGS_DBG} -o ${filename}_dbg ${filename}_dbg.o common_dbg.o \${LINKIN}
 
 #--- Sanitizers (use clang): <foo>_dbg_[asan|ub|msan]
 ${filename}_dbg_asan.o: ${filename}.c
 	\${CL} \${CFLAGS_DBG_ASAN} -c ${filename}.c -o ${filename}_dbg_asan.o
 ${filename}_dbg_asan: ${filename}_dbg_asan.o common_dbg_asan.o
-	\${CL} \${CFLAGS_DBG_ASAN} -o ${filename}_dbg_asan ${filename}_dbg_asan.o common_dbg_asan.o
+	\${CL} \${CFLAGS_DBG_ASAN} -o ${filename}_dbg_asan ${filename}_dbg_asan.o common_dbg_asan.o \${LINKIN}
 
 ${filename}_dbg_ub.o: ${filename}.c
 	\${CL} \${CFLAGS_DBG_UB} -c ${filename}.c -o ${filename}_dbg_ub.o
 ${filename}_dbg_ub: ${filename}_dbg_ub.o common_dbg_ub.o
-	\${CL} \${CFLAGS_DBG_UB} -o ${filename}_dbg_ub ${filename}_dbg_ub.o common_dbg_ub.o
+	\${CL} \${CFLAGS_DBG_UB} -o ${filename}_dbg_ub ${filename}_dbg_ub.o common_dbg_ub.o \${LINKIN}
 
 ${filename}_dbg_msan.o: ${filename}.c
 	\${CL} \${CFLAGS_DBG_MSAN} -c ${filename}.c -o ${filename}_dbg_msan.o
 ${filename}_dbg_msan: ${filename}_dbg_msan.o common_dbg_msan.o
-	\${CL} \${CFLAGS_DBG_MSAN} -o ${filename}_dbg_msan ${filename}_dbg_msan.o common_dbg_msan.o"
+	\${CL} \${CFLAGS_DBG_MSAN} -o ${filename}_dbg_msan ${filename}_dbg_msan.o common_dbg_msan.o \${LINKIN}"
 
 
 	echo "${RULE}"
@@ -167,6 +170,7 @@ done
 
 # Makefile bottom
 
+echo
 MVARS_END="# indent- \"beautifies\" C code into the \"Linux kernel style\".
 # (cb = C Beautifier :) )
 # Note! original source file(s) is overwritten, so we back it up.
