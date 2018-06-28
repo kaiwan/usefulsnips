@@ -27,7 +27,8 @@ local i=1 whensec=60
 echo "||| $(date) |||"
 while [ true ]
 do 
-	ps -eo state,pid,cmd | grep "^D"
+	#ps -eo state,pid,cmd | grep "^D"
+	ps -LA -o state,pid,cmd | grep "^D"
 	[ $(($i*${DLY})) -ge ${whensec} ] && {
 		echo "||| $(date) |||"
 		i=0
