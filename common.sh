@@ -388,3 +388,16 @@ do
 done
 echo "${total_thrds}"
 } # end numthreads()
+
+#-------------- r u n c m d -------------------------------------------
+# Display and run the provided command.
+# Parameter 1 : the command to run
+runcmd()
+{
+SEP="------------------------------"
+[ $# -eq 0 ] && return
+echo "${SEP}
+$@
+${SEP}"
+eval $@
+}
