@@ -61,6 +61,9 @@ do
 	let i=i+1
 done
 
+OPTZ_LEVEL=2
+  # can use 0, 1, 2, 3 or s
+
 # Makefile beginning
 MVARS_TOP="# Makefile
 #----------------------------------------------------------------------
@@ -86,14 +89,14 @@ ALL := ${TARGETS}
 CC=\${CROSS_COMPILE}gcc
 CL=\${CROSS_COMPILE}clang
 
-CFLAGS=-Wall -UDEBUG
+CFLAGS=-O${OPTZ_LEVEL} -Wall -UDEBUG
 CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG
 CFLAGS_DBG_ASAN=\${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_MSAN=\${CFLAGS_DBG} -fsanitize=memory
 CFLAGS_DBG_UB=\${CFLAGS_DBG} -fsanitize=undefined
 
-LINKIN=
-   # set as required to libraries to link in; f.e.  -lrt
+#LINKIN=
+ # user will need to explicitly set libraries to link in as required; f.e. -lrt
 
 all: \${ALL}
 CB_FILES := *.[ch]"
@@ -140,28 +143,28 @@ do
 ${filename}.o: ${filename}.c
 	\${CC} \${CFLAGS} -c ${filename}.c -o ${filename}.o
 ${filename}: common.o ${filename}.o
-	\${CC} -o ${filename} ${filename}.o common.o \${LINKIN}
+	\${CC} -o ${filename} ${filename}.o common.o
 
 ${filename}_dbg.o: ${filename}.c
 	\${CC} \${CFLAGS_DBG} -c ${filename}.c -o ${filename}_dbg.o
 ${filename}_dbg: ${filename}_dbg.o common_dbg.o
-	\${CC} -o ${filename}_dbg ${filename}_dbg.o common_dbg.o \${LINKIN}
+	\${CC} -o ${filename}_dbg ${filename}_dbg.o common_dbg.o
 
  #--- Sanitizers for ${filename} :: (use clang): <foo>_dbg_[asan|ub|msan]
 ${filename}_dbg_asan.o: ${filename}.c
 	\${CL} \${CFLAGS_DBG_ASAN} -c ${filename}.c -o ${filename}_dbg_asan.o
 ${filename}_dbg_asan: ${filename}_dbg_asan.o common_dbg_asan.o
-	\${CL} \${CFLAGS_DBG_ASAN} -o ${filename}_dbg_asan ${filename}_dbg_asan.o common_dbg_asan.o \${LINKIN}
+	\${CL} \${CFLAGS_DBG_ASAN} -o ${filename}_dbg_asan ${filename}_dbg_asan.o common_dbg_asan.o
 
 ${filename}_dbg_ub.o: ${filename}.c
 	\${CL} \${CFLAGS_DBG_UB} -c ${filename}.c -o ${filename}_dbg_ub.o
 ${filename}_dbg_ub: ${filename}_dbg_ub.o common_dbg_ub.o
-	\${CL} \${CFLAGS_DBG_UB} -o ${filename}_dbg_ub ${filename}_dbg_ub.o common_dbg_ub.o \${LINKIN}
+	\${CL} \${CFLAGS_DBG_UB} -o ${filename}_dbg_ub ${filename}_dbg_ub.o common_dbg_ub.o
 
 ${filename}_dbg_msan.o: ${filename}.c
 	\${CL} \${CFLAGS_DBG_MSAN} -c ${filename}.c -o ${filename}_dbg_msan.o
 ${filename}_dbg_msan: ${filename}_dbg_msan.o common_dbg_msan.o
-	\${CL} \${CFLAGS_DBG_MSAN} -o ${filename}_dbg_msan ${filename}_dbg_msan.o common_dbg_msan.o \${LINKIN}"
+	\${CL} \${CFLAGS_DBG_MSAN} -o ${filename}_dbg_msan ${filename}_dbg_msan.o common_dbg_msan.o"
 
 
 	echo "${RULE}"
