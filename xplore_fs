@@ -39,7 +39,7 @@ ls -lh $1
   return
 }
 local numln=$(wc -l $1|awk '{print $1}')
-printf "${numln} lines\n"
+[ ${numln} -gt 1 ] && printf "${numln} lines\n"
 [ ${FANCY_MODE} -eq 1 ] && color_reset
 [ ${numln} -gt ${MAX_LINES} ] && {
   printf "\n   *** <Skipping, above max allowed lines (%ld)> ***\n" ${MAX_LINES}
