@@ -47,8 +47,6 @@ alias cp='cp -i'
 alias dmesg='/bin/dmesg --decode --nopager --color --ctime'
 alias dm='dmesg|tail -n35'
 alias dc='echo "Clearing klog"; dmesg -c > /dev/null'
-alias jlog='/bin/journalctl -ab --no-pager'
-alias jlogr='/bin/journalctl -amxr' #--no-pager|tail -n30' # r => reverse order
 alias lsh='lsmod | head'
 
 alias grep='grep --color=auto'
@@ -56,6 +54,18 @@ alias s='echo "Syncing.."; sync; sync; sync'
 alias d='df -h|grep "^/dev/"'
 alias f='free -ht'
 alias ma='mount -a; df -h'
+
+#--- journalctl aliases
+# jlog: current boot only, everything
+alias jlog='/bin/journalctl -b --all --catalog --no-pager'
+# jlogr: current boot only, everything, *reverse* chronological order
+alias jlogr='/bin/journalctl -b --all --catalog --no-pager --reverse'
+# jlogall: *everything*, all time; --merge => _all_ logs merged
+alias jlogall='/bin/journalctl --all --catalog --merge --no-pager'
+# jlogf: *watch* log, 'tail -f' mode
+alias jlogf='journalctl -f'
+# jlogk: only kernel messages, this boot
+alias jlogk='journalctl -b -k --no-pager'
 
 alias py='ping -c3 yahoo.com'
 alias inet='netstat -a|grep ESTABLISHED'
