@@ -13,6 +13,21 @@ name=$(basename $0)
 SEP="-----------------------------------------------------------------------"
 if [ $# -ne 1 ]; then
 	echo "Usage: $name name-of-kernel-module-file (without the .c)"
+#-------------- r u n c m d -------------------------------------------
+# Display and run the provided command.
+# Parameter 1 : the command to run
+runcmd()
+{
+local SEP="------------------------------"
+[ $# -eq 0 ] && return
+echo "${SEP}
+$@
+${SEP}"
+eval "$@"
+[ $? -ne 0 ] && echo " ^--[FAILED]"
+}
+
+### "main" here
 	exit 1
 fi
 
@@ -28,31 +43,9 @@ echo "Version info:"
 #cat /etc/issue
 uname -r
 
-echo $SEP
-echo "sudo rmmod $1 2> /dev/null"
-sudo rmmod $1 2> /dev/null
-
-echo $SEP
-echo "make clean"
-echo $SEP
-make clean
-
-echo $SEP
-echo "sudo dmesg -c > /dev/null"
-echo $SEP
-sudo dmesg -c > /dev/null
-
-echo $SEP
-echo "make || exit 1"
-echo $SEP
-make || exit 1
-
-echo $SEP
-echo "sudo insmod ./$1.ko && lsmod|grep $1"
-echo $SEP
-sudo insmod ./$1.ko && lsmod|grep $1
-
-echo $SEP
-echo "dmesg"
-echo $SEP
-dmesg
+runcmd "sudo rmmod $1 2> /dev/null"
+runcmd "make clean"
+runcmd "sudo dmesg -c > /dev/null"
+runcmd "make || exit 1"
+runcmd "sudo insmod ./$1.ko && lsmod|grep $1"
+runcmd dmesg
