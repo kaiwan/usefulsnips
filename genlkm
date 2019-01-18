@@ -6,9 +6,9 @@ name=$(basename $0)
 
 usage()
 {
-	echo "Usage: ${name} filename-without-.c_extension
- This helper script will create a directory under the current one named $1/
- and will then generate two files within it:
+	echo "Usage: ${name} module-name-without-.c_extension
+ This helper script will create a directory under the current one named
+ <module-name>/ and will then generate two files within it:
  (i)  the $1.c kernel module 'template' file, and
  (ii) the Makefile for it.
 Enjoy!"
@@ -32,38 +32,25 @@ done
 
 #------------- File Sections ------------------------
 HDR_1="/*
- * $1.c
+ * $1/$1.c
  ***************************************************************
- * This program is part of the source code released for the book
- *  \"Linux Kernel Development Cookbook\"
- *  (c) Author: Kaiwan N Billimoria
- *  Publisher:  Packt
- *  GitHub repository:
- *  https://github.com/PacktPublishing/Linux-Kernel-Development-Cookbook
- *
- * From: Ch : 
+ * < Your desc, comments, etc >
+ * (c) Author:
  ****************************************************************
- * Brief Description:
  *
- * For details, please refer the book, Ch .
- */
-"
+ */"
 
-INC_1="
-#include <linux/init.h>
+INC_1="#include <linux/init.h>
 #include <linux/module.h>
 "
 
-MAC_1="
-#define OURMODNAME   \"$1\"
-"
+MAC_1="#define OURMODNAME   \"$1\""
 
 MOD_STUFF="
 MODULE_AUTHOR(\"<insert your name here>\");
 MODULE_DESCRIPTION(\"LKDC book:ch/: hello, world\");
 MODULE_LICENSE(\"Dual MIT/GPL\");
-MODULE_VERSION(\"0.1\");
-"
+MODULE_VERSION(\"0.1\");"
 
 CODE_1="
 static int __init $1_init(void)
