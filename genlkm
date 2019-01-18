@@ -78,8 +78,7 @@ static void __exit $1_exit(void)
 }
 
 module_init($1_init);
-module_exit($1_exit);
-"
+module_exit($1_exit);"
 
 #---
 
@@ -104,7 +103,10 @@ EOF
 echo "[+] LKM $1/$1.c generated"
 ls -l $1.c
 
+which xcc_lkm.sh >/dev/null 2>&1 || {
+ echo "[!] xcc_lkm.sh script not found (not in PATH?), unable to generate Makefile"
+ exit 1
+}
 echo "[+] Generating the $1/Makefile for $1.c ..."
 xcc_lkm.sh $1
 )
-
