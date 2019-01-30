@@ -34,18 +34,15 @@ done
 HDR_1="/*
  * $1.c
  ***************************************************************
- * This program is part of the source code released for the book
- *  \"Linux Kernel Development Cookbook\"
- *  (c) Author: Kaiwan N Billimoria
- *  Publisher:  Packt
- *  GitHub repository:
- *  https://github.com/PacktPublishing/Linux-Kernel-Development-Cookbook
- *
- * From: Ch : 
+ * This program is part of the source code for [________________]
+ *  (c) Author(s) :
+ *  Repository URL:
  ****************************************************************
  * Brief Description:
  *
- * For details, please refer the book, Ch .
+ * For more details, please refer [_______]
+ ****************************************************************
+ * License:
  */
 "
 
@@ -60,8 +57,8 @@ MAC_1="
 
 MOD_STUFF="
 MODULE_AUTHOR(\"<insert your name here>\");
-MODULE_DESCRIPTION(\"LKDC book:ch/: hello, world\");
-MODULE_LICENSE(\"Dual MIT/GPL\");
+MODULE_DESCRIPTION(\"hello, world\");
+MODULE_LICENSE(\"GPL\");
 MODULE_VERSION(\"0.1\");
 "
 
