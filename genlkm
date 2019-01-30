@@ -93,6 +93,8 @@ ls -l $1.c
 
 which xcc_lkm.sh >/dev/null 2>&1 || {
  echo "[!] xcc_lkm.sh script not found (not in PATH?), unable to generate Makefile"
+ echo "Tip: xcc_lkm.sh is part of our GitHub repo
+ https://github.com/kaiwan/usefulsnips . Pl clone it as required."
  exit 1
 }
 echo "[+] Generating the $1/Makefile for $1.c ..."
