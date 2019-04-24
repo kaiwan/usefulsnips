@@ -8,7 +8,7 @@ VERBOSE=0
 
 usage()
 {
- echo "Usage: ${name} name-of-kernel-module-file (without any externsion)
+ echo "Usage: ${name} name-of-kernel-module-file (without any extension)
 
  This script generates a Makefile to build the given kernel module (works only
  for simple cases). Once generated, it builds the kernel module by invoking
@@ -81,7 +81,7 @@ endif
 
 obj-m          += $1.o
 EXTRA_CFLAGS   += -DDEBUG
-#\$(info Building for: ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS=${EXTRA_CFLAGS})
+\$(info Building for: ARCH=\${ARCH} CROSS_COMPILE=\${CROSS_COMPILE} EXTRA_CFLAGS=\${EXTRA_CFLAGS})
 
 all:
 	make -C \$(KDIR) M=\$(PWD) modules
