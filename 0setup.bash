@@ -102,7 +102,8 @@ alias gdiff='git diff -r'
 alias gfiles='git diff --name-status -r'
 alias gstat='git status ; echo ; git diff --stat -r'
 alias giturl='git remote get-url --all origin'
-alias gitlog='git log --graph --pretty=oneline --abbrev-commit'
+alias gitlog='git log --graph --pretty=format:"%h: %ar: %s" --abbrev-commit'
+ #git log --graph --pretty=oneline --abbrev-commit'
 #----------------------------------------------------------------------
 
 ###
