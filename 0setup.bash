@@ -27,11 +27,13 @@ unset USERNAME
 #--- Prompt
 # ref: https://unix.stackexchange.com/questions/20803/customizing-bash-shell-bold-color-the-command
 [ `id -u` -eq 0 ] && {
+[ `id -u` -eq 0 ] && {
+   export PS1='\W # '
    #export PS1='# '
-   export PS1='\[\e[1;34m\] $(hostname) # \[\e[0;32m\]'
+   #export PS1='\[\e[1;34m\] $(hostname) # \[\e[0;32m\]'
 } || {
-   #export PS1='$ '
-   export PS1='\[\e[1;34m\] $(hostname) \$ \[\e[0;32m\]'
+   export PS1='\W $ '
+   #export PS1='\[\e[1;34m\] $(hostname) \$ \[\e[0;32m\]'
 }
 trap 'printf \\e[0m' DEBUG  # IMP: turn Off color once Enter pressed..
 
