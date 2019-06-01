@@ -19,12 +19,10 @@ name=$(basename $0)
 # Check whether we are running as root user; if not, exit with failure!
 # Parameter(s):
 #  None.
-# "AIA" = Abort If Absent :-)
-check_root_AIA()
+check_root()
 {
 	if [ `id -u` -ne 0 ]; then
-		echo "Error: need to run as root! Aborting..."
-		exit 1
+		echo "Error: need to run as root!"
 	fi
 }
 
@@ -73,10 +71,14 @@ echo
 
 
 #------------------------------"main"--------------------------
-check_root_AIA
+[ $(id -u) -ne 0 ] && {
+  pathnm=$(which ${name})
+  exec sudo ${pathnm} $@
+}
 
+#echo "nump = $#, $ at = $@"
 VERBOSE=0
-if [ $# -ne 2 ]; then
+if [ $# -lt 1 ]; then
 	echo "Usage: $name PID V=[0|1]"
 	echo " PID: pid of process whose details will be displayed"
 	echo "Verbosity: 0 = non-verbose mode (default)"
@@ -84,14 +86,21 @@ if [ $# -ne 2 ]; then
 	exit 1
 fi
 
-if [ $2 = "1" ]; then
+echo -n "[+] Verbose mode: "
+if [ "$2" = "1" ]; then
 	VERBOSE=1
+	echo "On"
+else
+	echo "Off"
 fi
 
 unalias ls cat 2> /dev/null
 
 RT=/proc/$1
-check_folder_AIA $RT
+[ ! -d ${RT} ] && {
+	echo "[-] Err: dir \"${RT}\" non-existant, aborting ..."
+	exit 1
+}
 
 ShowTitle "System Minimal Info"
 
@@ -159,7 +168,6 @@ else
 fi
 echo $rootdir
 
-
 ProcShow "Control Group(s):" $RT/cgroup
 ProcShow "Task Details:" $RT/status NL
 ProcShow "Wait channel:" $RT/wchan
@@ -225,8 +233,6 @@ done
 # TODO:
 # pagemap howto ??
 # net/ ?
-
-
 
 echo
 echo $SEP
