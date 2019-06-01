@@ -3,7 +3,7 @@
 # 
 # Quick Description:
 # Show total memory currently in use by a given set of processes. 
-# A wrapper over smem.
+# A wrapper over smem(8).
 #
 # Last Updated : 14Aug2017
 # Created      : 14Aug2017
@@ -23,12 +23,7 @@ source ${PFX}/common.sh || {
  exit 1
 }
 
-########### Globals follow #########################
-# Style: gNameOfGlobalVar
-
-
 ########### Functions follow #######################
-
 
 smem_show()
 {

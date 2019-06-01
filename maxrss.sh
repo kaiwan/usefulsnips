@@ -10,4 +10,5 @@ echo "RSS (Resident Set Size): indication of phy mem usage (KB)."
 /bin/ps -o pid,ppid,user,rss,comm -A |sort -k4n -k5 |tail -n5 >> ${LOG} 2>&1
 cat ${LOG}
 rm -f ${LOG}
-echo " (Tip: try with smem(8) as well)"
+echo " (Tip: try with smem(8) as well;
+ just try via our prcsmem wrapper!)"

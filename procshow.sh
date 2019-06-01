@@ -4,12 +4,12 @@
 # Conveniently displays/demos features of procfs at a "global / macro" level
 # (meaning, not per-process or thread).
 # 
-# * Author: Kaiwan N Billimoria <kaiwan@designergraphix.com>
-#
+# * Author: Kaiwan N Billimoria
+#  //<kaiwan@designergraphix.com>
 # URL: 
 # http://kaiwantech.wordpress.com/2012/02/23/exploring-linux-procfs-via-shell-scripts/
 # 
-
+name=$(basename $0)
 INTERACTIVE=0   # make 1 to make this script "interactive"
 LINE="----------------------------------------------------------------------------"
 DBL_LINE="============================================================================"
@@ -32,10 +32,10 @@ show_cmd()
 }
 
 #--------------- "main" ------------------
-if [ `id -u` -ne 0 ]; then
-	echo "$0: Need to be root."
-	exit 1
-fi
+[ $(id -u) -ne 0 ] && {
+  pathnm=$(which ${name})
+  exec sudo ${pathnm} $@
+}
 
 cmd="cd /proc ; pwd ; ls --color=auto -F"
 show_cmd $cmd

@@ -4,10 +4,10 @@
 CSCOPE_DIR="$PWD/cscope"
 
 if [ ! -d "$CSCOPE_DIR" ]; then
-mkdir "$CSCOPE_DIR"
+  mkdir "$CSCOPE_DIR"
 fi
 
-echo "Finding files ..."
+echo "[+] Finding files ..."
 find "$PWD" -name '*.[ch]' \
 -o -name '*.java' \
 -o -name '*properties' \
@@ -17,11 +17,12 @@ find "$PWD" -name '*.[ch]' \
 -o -name '*.py' \
 -o -name '*.php' > "$CSCOPE_DIR/cscope.files"
 
-echo "Adding files to cscope db: $PWD/cscope.db ..."
+echo "[+] Adding files to cscope db: $PWD/cscope.db ..."
 cscope -b -i "$CSCOPE_DIR/cscope.files"
 
 export CSCOPE_DB="$PWD/cscope.out"
-echo "Exported CSCOPE_DB to: '$CSCOPE_DB'"
+echo "[+] Exported CSCOPE_DB to: '$CSCOPE_DB'"
 
 # ctags
-#ctags -R
+echo "[+] Generating ctags index now ..."
+ctags -R
