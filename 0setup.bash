@@ -27,7 +27,6 @@ unset USERNAME
 #--- Prompt
 # ref: https://unix.stackexchange.com/questions/20803/customizing-bash-shell-bold-color-the-command
 [ `id -u` -eq 0 ] && {
-[ `id -u` -eq 0 ] && {
    export PS1='\W # '
    #export PS1='# '
    #export PS1='\[\e[1;34m\] $(hostname) # \[\e[0;32m\]'
@@ -35,7 +34,7 @@ unset USERNAME
    export PS1='\W $ '
    #export PS1='\[\e[1;34m\] $(hostname) \$ \[\e[0;32m\]'
 }
-trap 'printf \\e[0m' DEBUG  # IMP: turn Off color once Enter pressed..
+#trap 'printf \\e[0m' DEBUG  # IMP: turn Off color once Enter pressed..
 
 # Aliases
 alias cl='clear'
@@ -141,6 +140,25 @@ function gitac()
  git add $1
  echo "git commit -m ..."
  git commit -m "$2"
+}
+
+function gitbranch()
+{
+ [ $# -ne 1 ] && {
+  echo "Usage: gitbranch <new-branch-off-master>"
+  return
+ }
+ echo "git checkout -b $1 master ..."
+ git checkout -b $1 master
+}
+function gitmergebr()
+{
+ [ $# -ne 1 ] && {
+  echo "Usage: gitmergebr <branch-to-merge-into-master>"
+  return
+ }
+ echo "git checkout master && git merge $1 ..."
+ git checkout master && git merge $1
 }
 
 # Show thread(s) running on cpu core 'n'  - func c'n'
