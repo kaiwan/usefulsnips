@@ -1,9 +1,10 @@
 #!/bin/bash
 # monitorsys
-# Part of the Seawolf project.
+#
+# Part of the usefulsnips GitHub repo.
+# https://github.com/kaiwan/usefulsnips
+#
 # Simple script to setup & run various 'monitor' programs in terminal windows.
-# Run as : gksu </path/to/>monitorsys | sudo </path/to/>monitorsys
-# 
 # Update: added vmstat [20Oct2017]
 #
 # Author: Kaiwan NB
@@ -50,9 +51,24 @@ done
   exit 1
 }
 
+#--- Verify this is the only running instance
+ps -C ${name} -o pid= > /tmp/$$
+num=$(cat /tmp/$$ |wc -l)
+[ ${num} -gt 1 ] && {
+  echo "ERR: Another instance of \"${name}\" appears to be currently running ... aborting"
+  rm -f /tmp/$$
+  exit 1
+}
+
+#--- If !root, re-exec it via sudo(8)
 if [ $(id -u) -ne 0 ]; then
-	# Get current script's pathname
-	pid=$(ps -C ${name} -o pid=)
+	#--- Get current script's pathname
+	pid=$(cat /tmp/$$)
+	[ -z "${pid}" ] && {
+	  echo "ERR: couldn't fetch this instance's PID, aborting"
+	  rm -f /tmp/$$
+	  exit 1
+	}
 	pathnm=$(ps -p ${pid} -o command= |awk '{print $2}')
 	#echo "name=${name} pathnm=${pathnm}"
 	echo "${name}: need root, invoking script via sudo now ..."
@@ -115,5 +131,6 @@ echo "${choices}" | grep -w iftop >/dev/null 2>&1
 [ $? -eq 0 ] && {
    netif=$(route | grep '^default' | grep -o '[^ ]*$')
    intf=$(zenity --title="Specify net interface" --entry --text="Pl specify Network interface to monitor:" --entry-text="${netif}" 2>/dev/null)
-   [ ! -z ${intf} ] && lxterminal --working-directory=${HOME}/ --command="iftop -i ${intf}" --title="IFTOP ${intf}" --geometry=85x15 &
+   # show port as well (-P)
+   [ ! -z ${intf} ] && lxterminal --working-directory=${HOME}/ --command="iftop -P -i ${intf}" --title="IFTOP ${intf}" --geometry=85x15 &
 }
