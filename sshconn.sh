@@ -11,10 +11,8 @@
 # Kaiwan N Billimoria
 # kaiwan -at- kaiwantech -dot- com
 # kaiwanTECH
-# 
 # License:
 # MIT License.
-# 
 name=$(basename $0)
 [ $# -lt 2 ] && {
   echo "Usage: ${name} [hostname] username [IP-addr-to-ssh-to]
@@ -28,6 +26,7 @@ Specify either as:
 ########### Functions follow #######################
 
 SUBNET="192.168.0.*"  # !! _Assumption_ !!
+SUBNET3="192.168.0"   # !! _Assumption_ !!
 TMPFILE=./.tmp
 
 # Params:
@@ -35,12 +34,27 @@ TMPFILE=./.tmp
 # $2 : IP address
 do_connect()
 {
-local cmdstr="ssh ${1}@${2}"
-echo "Running: ${cmdstr}"
-eval "${cmdstr}" || {
-  echo "${name}: ssh failed, aborting ..."
-  exit 3
+local errfile=/tmp/err.$$
+# disable stict checking
+local sshopts="-o UserKnownHostsFile=/dev/null"  #"-v"
+local cmdstr="ssh ${sshopts} ${1}@${2}"
+
+echo "${cmdstr}"
+eval "${cmdstr}" 2>${errfile} || {
+  echo "${name}: ssh failed"
+  #exit 3
+  local cmd2=$(grep "ssh-keygen " ${errfile})
+  [ -z "${cmd2}" ] && exit 3   # it failed for some other reason...
+
+  cmd3=$(sed 's/^[[:space:]]*//' <<< "${cmd2}")
+  cmd3="${cmd3} -N ''"
+  echo "cmd3 = ${cmd3}"
+  eval "${cmd3}" && {
+    echo "*** Ran shh-keygen, now re-attempting to ssh..."
+	eval "${cmdstr}" || exit 4  # 'should' succeed!
+  }
 }
+rm -f ${errfile}
 }
 
 main()
@@ -72,7 +86,15 @@ do_connect ${user} ${qIP}
 host=$1
 user=$2
 if [ $# -eq 3 ]; then  # shortcut!
-  do_connect $2 $3
+  #echo "ip = $3"
+  # Is it a full-fledged IP addr? look for the 3 dots '.' using awk :-)
+  fullip=$(echo $3|awk '/.*\..*\..*\./ {print $0}')
+  if [ ! -z "${fullip}" ] ; then
+    ipaddr=$3
+  else
+    ipaddr=${SUBNET3}.$3
+  fi
+  do_connect $2 ${ipaddr}
 else
   main
 fi
