@@ -13,20 +13,22 @@
 #
 # Kaiwan N Billimoria
 # kaiwan -at- kaiwantech -dot- com
-# GPL v2
+# License: Dual MIT/GPL
 name=$(basename $0)
+
+REGULAR_TREE=1
+LINUX_NEXT_TREE=0  # linux-next: working with the bleeding edge?
 
 echo "${name}: !NOTE! You must specify whether you want to clone the:
  'regular' kernel src tree (by setting REGULAR_TREE=1 and LINUX_NEXT_TREE=0 in this script), 
 -or-
  'linux-next' kernel src tree (by setting REGULAR_TREE=0 and LINUX_NEXT_TREE=1 in this script).
 
+Currently, REGULAR_TREE=${REGULAR_TREE}, LINUX_NEXT_TREE=${LINUX_NEXT_TREE}
+
 Press [Enter] to continue, or ^C to exit ...
 "
-read x
-
-REGULAR_TREE=0
-LINUX_NEXT_TREE=1  # linux-next: working with the bleeding edge?
+read -r x
 
 if [ ${REGULAR_TREE} -eq 1 -a ${LINUX_NEXT_TREE} -eq 1 ] ; then
   echo "${name}: Both 'regular' and 'linux-next' can't be cloned, choose one of them pl.."

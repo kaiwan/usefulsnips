@@ -4,15 +4,13 @@
 # Quick Description:
 # Simple wrapper over ssh.
 # 
-# Last Updated : 30June2017
-# Created      : 15June2017
+# Last Updated : 30Dec2019
+# Created      : 15Jun2017
 # 
-# Author:
-# Kaiwan N Billimoria
+# (c) Kaiwan N Billimoria
 # kaiwan -at- kaiwantech -dot- com
 # kaiwanTECH
-# License:
-# MIT License.
+# License: MIT
 name=$(basename $0)
 [ $# -lt 2 ] && {
   echo "Usage: ${name} [hostname] username [IP-addr-to-ssh-to]
@@ -80,6 +78,7 @@ rm -f ${TMPFILE}
 do_connect ${user} ${qIP}
 
 } # end main()
+
 
 ##### execution starts here #####
 
