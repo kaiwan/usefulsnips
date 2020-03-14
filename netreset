@@ -1,0 +1,4 @@
+echo "sudo systemctl restart networking"
+sudo systemctl restart networking
+echo "sudo dhclient"
+sudo dhclient
