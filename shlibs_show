@@ -1,0 +1,14 @@
+#!/bin/sh
+# ldd_view
+# Shows shared lib dependencies; simple wrapper over ldd(1)
+# Essentially, the address is a runtime and VAS (virt addr space) generated
+# on each run.. differs on subsequent runs
+[ $# -eq 0 ] && {
+  echo "Usage: ${name} {prg1} [prg2] ..."
+  exit 1
+}
+for param in "$@"
+do
+  echo "[+] ldd on ${param} ----------------"
+  ldd ${param} |grep "=>"|awk '{printf("%30s %50s %20s\n", $1, $3, $4)}'
+done
