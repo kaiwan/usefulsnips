@@ -43,13 +43,14 @@ HDR_1="/*
 
 INC_1="#include <linux/init.h>
 #include <linux/module.h>
+#include <linux/kernel.h>
 "
 
 MAC_1="#define OURMODNAME   \"$1\""
 
 MOD_STUFF="
 MODULE_AUTHOR(\"<insert your name here>\");
-MODULE_DESCRIPTION(\"LKDC book:ch/: hello, world\");
+MODULE_DESCRIPTION(\"<module description>\");
 MODULE_LICENSE(\"Dual MIT/GPL\");
 MODULE_VERSION(\"0.1\");"
 
