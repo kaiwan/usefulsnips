@@ -19,9 +19,13 @@ for (( i=0; i<${len}; i++ ))
 do
   font=${fonts[$i]}
   font_txt=${font::-4}
-  echo "font=${font}"
+
+  echo "  toilet -f ${font} \"your msg\""
   toilet -f ${font} "${font_txt}"
-  echo "(heavy) metal style:"
+
+  echo "
+(heavy) metal style:
+  toilet -F metal -f ${font} \"your msg\""
   toilet -F metal -f ${font} "${font_txt}"
   echo "-------------------------------------------------------------------------------"
 done
