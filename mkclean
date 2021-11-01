@@ -60,6 +60,7 @@ mkclean()
   cd ${dir}
   pwd
   eval "${cmd}" || Warn "*** $(pwd) : ${FUNCNAME[0]}(): cmd '${cmd}' failed"
+  rm -f .*.swp
   )
 }
 

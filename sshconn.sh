@@ -23,8 +23,8 @@ Specify either as:
 
 ########### Functions follow #######################
 
-SUBNET="192.168.0.*"  # !! _Assumption_ !!
-SUBNET3="192.168.0"   # !! _Assumption_ !!
+SUBNET="192.168.1.*"  # !! _Assumption_ !!
+SUBNET3="192.168.1"   # !! _Assumption_ !!
 TMPFILE=./.tmp
 
 # Params:
