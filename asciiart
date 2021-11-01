@@ -1,0 +1,28 @@
+#!/bin/bash
+# ref:
+# https://askubuntu.com/questions/690926/how-can-i-print-existing-ascii-art-from-a-bash-script
+name=$(basename $(realpath $0))
+which toilet >/dev/null || {
+  echo "${name}: pl do install toilet :-)"
+  exit 1
+}
+[ ! -d /usr/share/figlet ] && {
+  echo "${name}: fonts folder /usr/share/figlet not found?"
+  exit 1
+}
+
+declare -a fonts=(ascii12.tlf bigascii9.tlf circle.tlf future.tlf mono9.tlf smascii9.tlf smmono12.tlf ascii9.tlf bigmono12.tlf emboss2.tlf letter.tlf pagga.tlf smblock.tlf smmono9.tlf bigascii12.tlf bigmono9.tlf emboss.tlf mono12.tlf smascii12.tlf smbraille.tlf wideterm.tlf)
+
+len=${#fonts[@]}
+IFS=" "
+for (( i=0; i<${len}; i++ ))
+do
+  font=${fonts[$i]}
+  font_txt=${font::-4}
+  echo "font=${font}"
+  toilet -f ${font} "${font_txt}"
+  echo "(heavy) metal style:"
+  toilet -F metal -f ${font} "${font_txt}"
+  echo "-------------------------------------------------------------------------------"
+done
+
