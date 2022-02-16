@@ -1,0 +1,7 @@
+#!/bin/bash
+[ $# -eq 0 ] && {
+  echo "Usage: $0 source-file(s)-to-chk-with-cppcheck"
+  exit 1
+}
+echo "cppcheck -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem $1"
+cppcheck -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem $1
