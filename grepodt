@@ -1,0 +1,39 @@
+#!/bin/bash
+name=$(basename $0)
+DIR2CHK=.
+which odt2txt >/dev/null || {
+  echo "install odt2txt"; exit 1
+}
+
+[ $# -ne 2 ] && {
+  echo "Usage: ${name} directory-to-check regex"
+  exit 1
+}
+TOP=$(pwd)
+DIR2CHK=$1
+cd ${DIR2CHK}
+
+TMPDIR=/tmp/${name}  #$(mktemp -d)
+rm -rf ${TMPDIR}
+#for f in $(find ${DIR2CHK} -maxdepth 2 -name "*.odt" 2>/dev/null)
+for f in $(find ${DIR2CHK} -name "*.odt" 2>/dev/null)
+do
+  [ ! -f ${f} ] && continue
+  #echo "f: ${f}"
+  mkdir -p ${TMPDIR}/$(dirname ${f})
+  cmd="odt2txt ${f} > ${TMPDIR}/$(dirname ${f})/$(basename ${f}).txt" #2>/dev/null
+  #echo ${cmd}
+  echo -n "."
+  eval ${cmd}
+done
+echo
+
+GOPTS="-iHnC1 --color"
+for f in $(find ${TMPDIR} -name "*.txt" 2>/dev/null)
+do
+  \grep ${GOPTS} "${2}" ${TMPDIR}/*.txt 2>/dev/null
+done
+
+rm -rf ${TMPDIR}
+cd ${TOP}
+exit 0
