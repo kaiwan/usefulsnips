@@ -1,0 +1,7 @@
+#!/bin/bash
+# ref: http://poormansprofiler.org/
+[ $# -ne 1 ] && {
+  echo "Usage: $0 PID(show-stack-of-this-process)"
+  exit 1
+}
+sudo gdb -ex "set pagination 0" -ex "thread apply all bt"   --batch -p ${1}
