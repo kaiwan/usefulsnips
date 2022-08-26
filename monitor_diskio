@@ -1,0 +1,8 @@
+#!/bin/bash
+# monitor_diskio
+
+# ref:
+#  man iotop
+#  https://haydenjames.io/what-is-iowait-and-linux-performance/
+
+sudo iotop --only --accumulated --batch --time --kilobytes --quiet --processes
