@@ -24,7 +24,8 @@ usage()
 [Explanation for Geeks:
 - In CLI (command line / console) mode, one only gets to see the output of dstat
 (still quite useful); this is as there's only one terminal window available.
-- In GUI mode (when running on X), one will see the output of:
+- In GUI mode (when running on X/Wayland), one will see the output of the foll utils
+ (depends on which you select):
   iotop
   dstat
   dstat [plain]
@@ -34,6 +35,19 @@ usage()
  "
 }
 
+showpids()
+{
+echo "PIDs
+iotop ${pid_iotop}
+dtop ${pid_dtop}
+dstat ${pid_dstat}
+vmstat ${pid_vmstat}
+iftop ${pid_iftop}
+"
+}
+
+
+#--- 'main'
 ### check command/utility dependencies
 needinstall=0
 for util in vmstat dstat iotop iftop lxterminal zenity
@@ -55,7 +69,8 @@ done
 ps -C ${name} -o pid= > /tmp/$$
 num=$(cat /tmp/$$ |wc -l)
 [ ${num} -gt 1 ] && {
-  echo "ERR: Another instance of \"${name}\" appears to be currently running ... aborting"
+  echo "ERR: Another instance of \"${name}\" appears to be currently running ... 
+Terminate it and retry. Aborting."
   rm -f /tmp/$$
   exit 1
 }
@@ -112,19 +127,23 @@ xhost si:localuser:root
 # iotop
 echo "${choices}" | grep -w iotop >/dev/null 2>&1
 [ $? -eq 0 ] && lxterminal --working-directory=${HOME}/ --command="iotop" --title="IOTOP" --geometry=90x10 &
+export pid_iotop=$(ps -C iotop -o pid=)
 
 # dtop
 echo "${choices}" | grep -w dtop >/dev/null 2>&1
 [ $? -eq 0 ] && lxterminal --working-directory=${HOME}/ --command="dstat --time --top-io-adv --top-cpu --top-mem 5" --title="DTOP" --geometry=110x10 &
+export pid_dtop=$(ps -C dstat -o pid=|head -n1)
 
 # dstat
 echo "${choices}" | grep -w dstat >/dev/null 2>&1
 [ $? -eq 0 ] && lxterminal --working-directory=${HOME}/ --command="dstat" --title="DSTAT" --geometry=90x10 &
+export pid_dstat=$(ps -C dstat -o pid=|tail -n1)
 
 # vmstat {delaysec}
 DELAYSEC=3
 echo "${choices}" | grep -w vmstat >/dev/null 2>&1
-[ $? -eq 0 ] && lxterminal --working-directory=${HOME}/ --command="vmstat ${DELAYSEC}" --title="VMSTAT" --geometry=90x10 &
+[ $? -eq 0 ] && lxterminal --working-directory=${HOME}/ --command="vmstat ${DELAYSEC}" --title="VMSTAT" --geometry=120x10 &
+export pid_vmstat=$(ps -C vmstat -o pid=)
 
 # iftop
 echo "${choices}" | grep -w iftop >/dev/null 2>&1
@@ -133,4 +152,8 @@ echo "${choices}" | grep -w iftop >/dev/null 2>&1
    intf=$(zenity --title="Specify net interface" --entry --text="Pl specify Network interface to monitor:" --entry-text="${netif}" 2>/dev/null)
    # show port as well (-P)
    [ ! -z ${intf} ] && lxterminal --working-directory=${HOME}/ --command="iftop -P -i ${intf}" --title="IFTOP ${intf}" --geometry=85x15 &
+   export pid_iftop=$(ps -C iftop -o pid=)
 }
+
+sleep 2
+showpids
