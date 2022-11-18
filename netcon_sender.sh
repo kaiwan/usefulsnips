@@ -1,5 +1,5 @@
 #!/bin/bash
-# netcon_setup.sh
+# netcon_sender.sh
 # 
 # Quick Description:
 # Netconsole setup helper script.
@@ -12,8 +12,8 @@
 # https://wiki.ubuntu.com/Kernel/Netconsole
 # https://mraw.org/blog/2010/11/08/Debugging_using_netconsole/
 # 
-# Last Updated : 29June2017
-# Created      : 14June2017
+# Last Updated : 18Nov2022
+# Created      : 14Jun2017
 # 
 # Author:
 # Kaiwan N Billimoria
@@ -28,21 +28,18 @@ name=$(basename $0)
 
 remotePort=6666   # default recv port for netconsole
 
-main()
+netcon_host_setup()
 {
-
 localIP=$(hostname -I |cut -d" " -f1)
 [ -z ${localIP} ] && {
   echo "${name}: error: could not fetch local IP address (network ok?)"
   exit 1
 }
-
 localDev=$(ifconfig |grep -B1 "${localIP}" |head -n1 |cut -d":" -f1)
 [ -z ${localDev} ] && {
   echo "${name}: error: could not fetch local network interface name (network ok?)"
   exit 1
 }
-
 lsmod|grep -q netconsole && {
  sudo rmmod netconsole || {
    echo "${name}: rmmod netconsole [old instance] failing, aborting..."
@@ -50,9 +47,18 @@ lsmod|grep -q netconsole && {
  }
 }
 
-#cmdstr="modprobe netconsole netconsole=+@${localIP}/${localDev},${remotePort}@${remoteIP}/"
-                                      # + => 'extended' console support (verbose)
-cmdstr="sudo modprobe netconsole netconsole=@${localIP}/${localDev},${remotePort}@${remoteIP}/"
+# Ensure console printks are enabled
+local last_3=$(awk '{print $2,$3,$4}' /proc/sys/kernel/printk)
+sudo sh -c "echo "8 ${last_3}" > /proc/sys/kernel/printk"
+local console_level=$(awk '{print $1}' /proc/sys/kernel/printk)
+[ ${console_level} -ne 8 ] && {
+   echo "${name}: couldn't set console loglevel to 8? Aborting..."
+   exit 1
+}
+
+#modprobe netconsole netconsole=+@${localIP}/${localDev},${remotePort}@${remoteIP}/
+# + => 'extended' console support (verbose)
+local cmdstr="sudo modprobe netconsole netconsole=@${localIP}/${localDev},${remotePort}@${remoteIP}/"
 echo "Running: ${cmdstr}"
 eval ${cmdstr} || {
  echo "${name}: sudo modprobe netconsole ... failed, aborting..
@@ -60,7 +66,7 @@ eval ${cmdstr} || {
 *** Wired Ethernet on this (local) system                            ***
  Last 20 lines dmesg output follows:
 "
- dmesg |tail -n20
+ sudo dmesg |tail -n20
  exit 1
 }
 
@@ -68,18 +74,14 @@ lsmod|grep netconsole
 echo "${name}: netconsole locked & loaded.
 Ensure (remote) receiver is setup to receive log packets (over nc)
  Res: https://wiki.ubuntu.com/Kernel/Netconsole"
-} # end main()
+}
+
 
 ##### execution starts here #####
-
-#[ $(id -u) -ne 0 ] && {
-#  echo "${name}: requires root."
-#  exit 1
-#}
 [ $# -ne 1 ] && {
  echo "Usage: ${name} remoteIP"
  exit 1
 }
 remoteIP=$1
-main
+netcon_host_setup
 exit 0
