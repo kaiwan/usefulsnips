@@ -48,8 +48,8 @@ lsmod|grep -q netconsole && {
 }
 
 # Ensure console printks are enabled
-local last_3=$(awk '{print $2,$3,$4}' /proc/sys/kernel/printk)
-sudo sh -c "echo "8 ${last_3}" > /proc/sys/kernel/printk"
+local last3=$(awk '{print $2,$3,$4}' /proc/sys/kernel/printk)
+sudo sh -c "echo \"8 ${last3}\" > /proc/sys/kernel/printk"
 local console_level=$(awk '{print $1}' /proc/sys/kernel/printk)
 [ ${console_level} -ne 8 ] && {
    echo "${name}: couldn't set console loglevel to 8? Aborting..."
