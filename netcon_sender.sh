@@ -62,9 +62,9 @@ local cmdstr="sudo modprobe netconsole netconsole=@${localIP}/${localDev},${remo
 echo "Running: ${cmdstr}"
 eval ${cmdstr} || {
  echo "${name}: sudo modprobe netconsole ... failed, aborting..
-*** NOTE- netconsole fails on a WiFi local device, pl Ensure you use ***
-*** Wired Ethernet on this (local) system                            ***
- Last 20 lines dmesg output follows:
+*** NOTE- netconsole can fail on a WiFi sender device, pl Ensure ***
+*** you use Wired Ethernet on this (sender) system               ***
+ Kernel log - last 20 lines - follows:
 "
  sudo dmesg |tail -n20
  exit 1
