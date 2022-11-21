@@ -4,4 +4,4 @@
 PORT=6666
 LOG=~/netcon.log
 echo "------------- $(date) -------------" >> ${LOG}
-nc -luv ${PORT} |tee -a ${LOG}
+netcat -d -u -l ${PORT} |tee -a ${LOG}
