@@ -159,7 +159,7 @@ GetIP()
 get_yn_reply()
 {
 aecho -n "Type Y or N please (followed by ENTER) : "
-str="${@}"
+local str="${@}"
 while true
 do
    aecho ${str}
@@ -394,7 +394,7 @@ echo "${total_thrds}"
 # Parameter 1 : the command to run
 runcmd()
 {
-SEP="------------------------------"
+local SEP="------------------------------"
 [ $# -eq 0 ] && return
 echo "${SEP}
 $@
