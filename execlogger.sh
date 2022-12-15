@@ -1,7 +1,7 @@
 #!/bin/bash
-# Simple wrapper over B Gregg's perf-tools-unstable execsnoop-perf
+# Simple wrapper over execsnoop from the BPF tools package
 name=$(basename $0)
-PRG=execsnoop   #/home/kai/github_kaiwan_repos/perf-tools/execsnoop #-perf
+PRG=execsnoop-bpfcc
 
 [ $(id -u) -ne 0 ] && {
  echo "${name}: need root."
@@ -9,20 +9,19 @@ PRG=execsnoop   #/home/kai/github_kaiwan_repos/perf-tools/execsnoop #-perf
 }
 
 which ${PRG} >/dev/null || {
-#[ -x ${PRG} ] || {
- echo "${name}: \"${PRG}\" not found? PATH issue?"
+ echo "${name}: \"${PRG}\" not found? PATH issue?
+Tip- On Ubuntu/Debian, install the bpfcc-tools package"
  exit 1
 }
 
 # kill any stale instance
 pkill --oldest $(basename ${PRG})
 
-MAXARGS=16
-EXECLOG=/home/kai/execlog
+EXECLOG=~/execlog
 HLINE="------------------------------------------------------"
 ( echo
   echo ${HLINE}
   date
   echo ${HLINE}
 ) >> ${EXECLOG} 2>&1
-${PRG} -t -r -a ${MAXARGS} >> ${EXECLOG} 2>&1
+${PRG} -T -U >> ${EXECLOG} 2>&1
