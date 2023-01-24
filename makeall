@@ -1,0 +1,89 @@
+#!/bin/bash
+# mkall
+# Quick Description:
+#  Recursively check and perform 'make'
+# 
+# Author:
+# Kaiwan N Billimoria
+# kaiwanTECH
+# License:
+# MIT License.
+name=$(basename $0)
+[ $# -ne 1 ] && {
+  echo "Usage: ${name} path-to-codebase-to-make-test"
+  exit 1
+}
+[ ! -d $1 ] && {
+  echo "${name}: path-to-codebase-to-make-test \"$1\" invalid?"
+  exit 1
+}
+
+PFX=$(dirname `which $0`)
+source ${PFX}/common.sh || {
+ echo "${name}: fatal: could not source ${PFX}/common.sh , aborting..."
+ exit 1
+}
+
+########### Globals follow #########################
+# Style: gNameOfGlobalVar
+
+
+########### Functions follow #######################
+
+Warn()
+{
+  echo "$@"
+}
+
+# $1 : -q => quiet mode
+# $2 : dir
+makeit()
+{
+  local cmd="make"
+  local dir=""
+
+  if [ $# -gt 1 -a "$1" != "-q" ] ; then
+    becho "[+] ${cmd}"
+    dir=$2
+  else
+    dir=$1
+  fi
+
+  (
+  cd ${dir}
+  aecho "$(pwd)"
+  #pwd
+  color_reset
+  eval "${cmd}" || Warn "*** $(pwd) : ${FUNCNAME[0]}(): cmd '${cmd}' failed"
+  rm -f .*.swp
+  )
+}
+
+start()
+{
+gSRC=$1
+wecho "$(date)"
+
+IFS=$'\n'; set -f
+for dir in $(find ${gSRC} -type d \
+ -not -path "*.git*" -not -path "*.tmp_versions" -not -path "*tools")
+do
+  #echo "In $dir:"
+  [ ! -f $dir/Makefile ] && {
+    aecho "[!] Skipping '$dir', no Makefile..."
+    continue
+  }
+  makeit $dir
+  echo
+done
+
+unset IFS; set +f
+}
+
+
+##### 'main' : execution starts here #####
+
+techo "<<<<<<<<<<<<<<<< ${name} : simple 'make' testing wrapper >>>>>>>>>>>>>>>>"
+#tools_check
+start $1
+exit 0
