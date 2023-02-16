@@ -50,7 +50,7 @@ local rec macaddr line=1 iplinenum ipline ipaddr devname
 
 sudo rm -f ${tmpfile}
 sudo touch ${tmpfile}
-sudo nmap -sn -PR $1/24 -oN ${tmpfile} > /dev/null
+sudo nmap -sn -PR $1/24 --host-timeout 1m -oN ${tmpfile} > /dev/null
 [ $? -ne 0 ] && {
 	echo "nmap failed; stat=$?" ; return
 }

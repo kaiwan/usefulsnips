@@ -2,7 +2,9 @@
 # lkm : a silly kernel module dev - build, load, unload - helper wrapper script
 # License: MIT
 # Kaiwan NB
+# Bash unofficial strict mode
 set -euo pipefail
+
 unset ARCH
 unset CROSS_COMPILE
 name=$(basename "${0}")
