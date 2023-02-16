@@ -1,0 +1,143 @@
+#!/bin/bash
+# test_lkm
+# Test loadable kernel module(s) (LKM) from the given directory, recursively
+# NOTE:
+# - we ASSUME a file named Makefile will be present within the LKM dir
+# - currently, there's no automated way to pass module parameters
+#
+# (c) Kaiwan NB, kaiwanTECH
+# License: MIT
+
+# Turn on Bash 'strict mode'! V useful
+# "Convert many kinds of hidden, intermittent, or subtle bugs into immediate, glaringly obvious errors"
+# ref: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+set -euo pipefail
+
+name=$(basename $0)
+QUIET=0
+
+SUCCESS_MSG="^^^ SUCCESS ^^^"
+WARNING_BUILD_MSG="
+### WARNING(s) during build; must check ###
+"
+FAIL_MSG="
+*** *** *** *** *** *** ***  FAIL  *** *** *** *** *** *** *** ***
+"
+
+failit()
+{
+echo "${FAIL_MSG}" >&2
+echo "message: $*" >&2
+return 1
+}
+
+# Parameter(s):
+# $1 : directory containing the LKM
+# Returns:
+#  0 on success
+#  non-zero on failure
+testlkm()
+{
+cd $1 || {
+  failit "cd to $1"
+  return 1
+}
+echo "=== $1 ==="
+[[ ! -f Makefile ]] && {
+   echo "no Makefile, skipping..."
+   return 0
+}
+local TMPF=/tmp/test.$$
+if [[ ${QUIET} -eq 1 ]] ; then
+   echo "make clean ; make"
+   make clean >/dev/null 2>&1
+   make >${TMPF} 2>&1 || {
+	  failit "make failed"
+	  return 1
+   }
+else
+   make clean
+   make |tee ${TMPF} || {
+	  failit "make failed"
+	  return 1
+	}
+fi
+grep "warning:" ${TMPF} && echo "${WARNING_BUILD_MSG=}"
+#cat ${TMPF}
+#rm -f ${TMPF}
+
+[[ $(ls *.ko 2>/dev/null) ]] || {
+   make clean >/dev/null 2>&1
+   echo "<<< No LKM? (likely it's usermode code here); skipping... >>>"
+   return 2
+}
+local LKM_KO=$(basename $(ls *.ko))
+local LKM=${LKM_KO::-3} # get rid of the trailing .ko
+[[ -z "${LKM}" ]] && {
+  make clean >/dev/null 2>&1
+  failit "couldn't get module name"
+  return 1
+}
+sudo rmmod ${LKM} 2>/dev/null || true
+sudo dmesg -C
+sudo insmod ${LKM_KO} || {
+  make clean >/dev/null 2>&1
+  failit "insmod ${LKM_KO} failed"
+  return 1
+}
+lsmod|grep ${LKM}
+sudo rmmod ${LKM} 2>/dev/null
+[[ ${QUIET} -eq 1 ]] && sudo dmesg -C || sudo dmesg -c
+make clean >/dev/null 2>&1
+echo "${SUCCESS_MSG}"
+return 0
+}
+
+usage()
+{
+echo -n "Usage: ${name} [-h|-q] path-to-kernel-module-dir
+[-h] : optional; show this help screen
+[-q] : optional; run in quiet mode: "
+[[ ${QUIET} -eq 1 ]] && echo "currently ON" || echo "currently OFF"
+echo "path-to-kernel-module-dir : mandatory; test all kernel modules within this dir recursively."
+}
+
+
+#--- 'main'
+[[ $# -eq 0 ]] && {
+   usage ; exit 1
+}
+if [[ $# -eq 1 ]] ; then
+   [[ "$1" = "-h" ]] && {
+	   usage ; exit 0
+   }
+   [[ "$1" = "-q" ]] && {  # only '-q' isn't ok
+	   usage ; exit 1
+   }
+   LKM_DIR=$1
+elif [[ $# -eq 2 ]] ; then
+   [[ "$1" = "-q" ]] && QUIET=1
+   LKM_DIR=$2
+fi
+
+#echo "LKM_DIR=${LKM_DIR}, quiet=${QUIET}"
+[[ ${QUIET} -eq 0 ]] && echo "FYI, can pass -q to run in quiet mode"
+
+i=1
+TOP=$(pwd)
+for KDIR in $(find ${LKM_DIR}/ -type d)
+do
+	[[ "${KDIR}" == *".git"* || "${KDIR}" == "." ]] && continue || true
+	#--- special case!
+	[[ "${KDIR}" == *"3_lockdep"* || "${KDIR}" == "." ]] && continue || true
+
+	if [[ ! -f ${TOP}/${KDIR}/Makefile ]] ; then
+		[[ ${QUIET} -eq 0 ]] && echo "<no Makefile in ${KDIR}, skipping..>"
+		continue
+	fi
+	echo "$i: KDIR = ${KDIR}"
+	cd ${TOP}
+	testlkm ${KDIR} || true
+	let i=i+1
+done
+exit 0
