@@ -67,11 +67,14 @@ file $1 |grep "with debug_info" >/dev/null
 	echo "${name}: binary $1 appears to not be built with debug info? Aborting..."
 	exit 1
 }
-GCC_VER=$(gcc --version|head -n1|awk '{print $NF}')
+#GCC_VER=$(gcc --version|head -n1|awk '{print $NF}')
+#GCC_VER=$(gcc -v 2>&1 |tail -n1 |awk '{print $3}')
 echo "$1:"
 # On embedded, readelf can spit out errors + a lot of matches to 'producer' + many repititions;
-# so trim the o/p and 'unique' it (eliminate dups) via sort -u !
-readelf --debug-dump $1 2>/dev/null |grep producer |grep "${GCC_VER}" |sed -n "s/.*${GCC_VER} //p" |sort -u
+# also, the gcc ver doesn't seem to match here.
+# So trim the o/p and 'unique' it (eliminate dups) via sort -u !
+readelf --debug-dump $1 2>/dev/null |grep producer |sed -n "s/.*GNU C//p" |sort -u
+#readelf --debug-dump $1 2>/dev/null |grep producer |grep "${GCC_VER}" |sed -n "s/.*${GCC_VER} //p" |sort -u
 #readelf --debug-dump $1 |grep producer |sed -n "s/.*${GCC_VER} //p"
 
 #---------------------
