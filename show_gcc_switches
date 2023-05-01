@@ -48,8 +48,7 @@ echo "GCC : generic: all disabled optimizations (${num_opt_dis})"
 [[ ${num_opt_dis} -gt 0 ]] && {
  gcc -Q --help=optimizers |grep " \-f.*\[disabled\]$" >> ${LOG}
 }
-echo "
-GCC : generic: default optimization options report written to: ${LOG}"
+echo "GCC : generic: default optimization options report written to: ${LOG}"
 }
 
 
@@ -58,6 +57,11 @@ GCC : generic: default optimization options report written to: ${LOG}"
   usage
   exit 1
 }
+file $1 |grep -w "ELF" >/dev/null
+[[ $? -ne 0 ]] && {
+	echo "${name}: file $1 appears to not be an ELF object? Aborting..."
+	exit 1
+}
 file $1 |grep "with debug_info" >/dev/null
 [[ $? -ne 0 ]] && {
 	echo "${name}: binary $1 appears to not be built with debug info? Aborting..."
@@ -65,7 +69,7 @@ file $1 |grep "with debug_info" >/dev/null
 }
 GCC_VER=$(gcc --version|head -n1|awk '{print $NF}')
 echo "$1:"
-readelf --debug-dump $1 |grep producer |sed -n "s/.*${GCC_VER}//p"
+readelf --debug-dump $1 |grep producer |sed -n "s/.*${GCC_VER} //p"
 
 #---------------------
 # Other interesting things!
