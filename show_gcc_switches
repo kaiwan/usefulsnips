@@ -69,7 +69,10 @@ file $1 |grep "with debug_info" >/dev/null
 }
 GCC_VER=$(gcc --version|head -n1|awk '{print $NF}')
 echo "$1:"
-readelf --debug-dump $1 |grep producer |sed -n "s/.*${GCC_VER} //p"
+# On embedded, readelf can spit out errors + a lot of matches to 'producer' + many repititions;
+# so trim the o/p and 'unique' it (eliminate dups) via sort -u !
+readelf --debug-dump $1 2>/dev/null |grep producer |grep "${GCC_VER}" |sed -n "s/.*${GCC_VER} //p" |sort -u
+#readelf --debug-dump $1 |grep producer |sed -n "s/.*${GCC_VER} //p"
 
 #---------------------
 # Other interesting things!
@@ -81,12 +84,13 @@ readelf --debug-dump $1 |grep producer |sed -n "s/.*${GCC_VER} //p"
 # gcc -Q --help=optimizers
 #---------------------
 
-SHOW_GCC_DEF_OPTIONS=1
+SHOW_GCC_DEF_OPTIONS=0
 REPORT_GCC_DEF_OPTIONS=report_gcc_def_options.txt
 [[ ${SHOW_GCC_DEF_OPTIONS} -eq 1 ]] && show_gcc_def_options ${REPORT_GCC_DEF_OPTIONS} || \
-	echo "show GCC default options : skipped"
+	echo "
+show GCC default options : skipped"
 
-SHOW_GCC_DEF_OPTIMIZATION_OPTIONS=1
+SHOW_GCC_DEF_OPTIMIZATION_OPTIONS=0
 REPORT_GCC_DEF_OPTIMIZATIONS=report_gcc_def_optimizations.txt
 [[ ${SHOW_GCC_DEF_OPTIMIZATION_OPTIONS} -eq 1 ]] && show_gcc_def_optimization_options ${REPORT_GCC_DEF_OPTIMIZATIONS} || \
 	echo "show GCC default optimization options : skipped"
