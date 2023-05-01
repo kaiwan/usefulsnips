@@ -97,7 +97,7 @@ do
 			#  Nmap scan report for 192.168.1.8
 		ipaddr=$(echo "${ipline}"|awk '{print $5}')
 	fi
-	echo "${devname},${ipaddr}"
+	echo "${devname}, ${ipaddr}"
 	}
   let line=line+1
 done
