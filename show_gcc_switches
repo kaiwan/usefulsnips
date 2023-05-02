@@ -1,5 +1,9 @@
 #!/bin/bash
+# Show GCC compiler option switches used to compile a given ELF object.
+# Limitation: works only for ELF objects compiled with debug info, -g
+# Can also show a detailed GCC report + GCC optimization flags that enabled/disabled.
 # (c) Kaiwan N Billimoria
+# MIT
 
 name=$(basename $0)
 
@@ -51,12 +55,9 @@ echo "GCC : generic: all disabled optimizations (${num_opt_dis})"
 echo "GCC : generic: default optimization options report written to: ${LOG}"
 }
 
-
-#--- 'main'
-[[ $# -ne 1 ]] && {
-  usage
-  exit 1
-}
+show_gcc_option_switches()
+{
+[[ $# -ne 1 ]] && return
 file $1 |grep -w "ELF" >/dev/null
 [[ $? -ne 0 ]] && {
 	echo "${name}: file $1 appears to not be an ELF object? Aborting..."
@@ -67,15 +68,25 @@ file $1 |grep "with debug_info" >/dev/null
 	echo "${name}: binary $1 appears to not be built with debug info? Aborting..."
 	exit 1
 }
-#GCC_VER=$(gcc --version|head -n1|awk '{print $NF}')
 #GCC_VER=$(gcc -v 2>&1 |tail -n1 |awk '{print $3}')
 echo "$1:"
 # On embedded, readelf can spit out errors + a lot of matches to 'producer' + many repititions;
 # also, the gcc ver doesn't seem to match here.
 # So trim the o/p and 'unique' it (eliminate dups) via sort -u !
-readelf --debug-dump $1 2>/dev/null |grep producer |sed -n "s/.*GNU C//p" |sort -u
+readelf --debug-dump $1 2>/dev/null |grep producer |sed -n "s/.*GNU //p" |sort -u
+##-- CAREFUL!  we have to match this -------------------------->^^^^^<--------------
+
 #readelf --debug-dump $1 2>/dev/null |grep producer |grep "${GCC_VER}" |sed -n "s/.*${GCC_VER} //p" |sort -u
 #readelf --debug-dump $1 |grep producer |sed -n "s/.*${GCC_VER} //p"
+}
+
+
+#--- 'main'
+[[ $# -ne 1 ]] && {
+  usage
+  exit 1
+}
+show_gcc_option_switches $1
 
 #---------------------
 # Other interesting things!
