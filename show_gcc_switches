@@ -30,8 +30,7 @@ LIMITATION: It MUST be compiled with debugging enabled, i.e., with -g"
 
 show_gcc_def_options()
 {
-local LOG=$1
-[[ $# -eq 0 ]] && LOG=${REPORT_GCC_DEF_OPTIONS}
+[[ $# -eq 1 ]] && local LOG=$1 || LOG=${REPORT_GCC_DEF_OPTIONS}
 
 cat > .hello.c <<@EOF@
 #include <stdio.h>
@@ -50,8 +49,7 @@ GCC : generic: default options report written to: ${LOG}"
 
 show_gcc_def_optimization_options()
 {
-local LOG=$1
-[[ $# -eq 0 ]] && LOG=${REPORT_GCC_DEF_OPTIMIZATIONS}
+[[ $# -eq 1 ]] && local LOG=$1 || LOG=${REPORT_GCC_DEF_OPTIMIZATIONS}
 
 local num_opt_en=$(gcc -Q --help=optimizers |grep " \-f.*\[enabled\]$"|wc -l)
 echo "GCC : generic: all enabled optimizations (${num_opt_en})"
@@ -95,34 +93,64 @@ readelf --debug-dump $1 2>/dev/null |grep producer |sed -n "s/.*GNU //p" |sort -
 
 
 #--- 'main'
-[[ $# -ne 1 ]] && {
+
+SHOW_GCC_DEF_OPTIONS=0
+SHOW_GCC_DEF_OPTIMIZATION_OPTIONS=0
 set +u
 ELF_FILE=$1
 set -u
+
+[[ $# -eq 0 ]] && {
   usage
   exit 1
 }
-show_gcc_option_switches $1
 
-#---------------------
+# getopts !
+# ref: https://www.geeksforgeeks.org/getopts-command-in-linux-with-examples/
+optspec="goh?"
+while getopts "${optspec}" opt
+do
+ #echo "optspec=${optspec} opt=${opt} optarg = ${OPTARG}"
+    case "${opt}" in
+		  g)
+			SHOW_GCC_DEF_OPTIONS=1
+			[[ $# -eq 2 ]] && ELF_FILE=$2
+			[[ $# -eq 3 ]] && ELF_FILE=$3
+			;;
+		  o)
+			SHOW_GCC_DEF_OPTIMIZATION_OPTIONS=1
+			[[ $# -eq 2 ]] && ELF_FILE=$2
+			[[ $# -eq 3 ]] && ELF_FILE=$3
+			;;
+		  h|H|?)
+		    usage
+			exit 0
+			;;
+	esac
+done
+
+#echo "#p = $#  ELF_FILE = ${ELF_FILE}  1st char=${ELF_FILE:0:1}
+#show_def=${SHOW_GCC_DEF_OPTIONS}  show_optz=${SHOW_GCC_DEF_OPTIMIZATION_OPTIONS}"
+# Ignore ELF_FILE if it begins with '-'  (then it's the -g or -o option actually)
+[[ ${ELF_FILE:0:1} = "-" ]] && ELF_FILE=""
+
+show_gcc_option_switches ${ELF_FILE}
+
+#--------------------------
 # Other interesting things!
-#---------------------
+#--------------------------
 # Get GCC default options:
 # gcc -Q -v filename.c
-#---------------------
-# Show all optimizations option switches (-f<foo>):
-# gcc -Q --help=optimizers
-#---------------------
-
-SHOW_GCC_DEF_OPTIONS=0
 REPORT_GCC_DEF_OPTIONS=report_gcc_def_options.txt
 [[ ${SHOW_GCC_DEF_OPTIONS} -eq 1 ]] && show_gcc_def_options ${REPORT_GCC_DEF_OPTIONS} || \
 	echo "
-show GCC default options : skipped"
+show GCC default options              : skipped (pass -g to get this report)"
 
-SHOW_GCC_DEF_OPTIMIZATION_OPTIONS=0
+#--------------------------
+# Show all optimizations option switches (-f<foo>):
+# gcc -Q --help=optimizers
 REPORT_GCC_DEF_OPTIMIZATIONS=report_gcc_def_optimizations.txt
 [[ ${SHOW_GCC_DEF_OPTIMIZATION_OPTIONS} -eq 1 ]] && show_gcc_def_optimization_options ${REPORT_GCC_DEF_OPTIMIZATIONS} || \
-	echo "show GCC default optimization options : skipped"
+	echo "show GCC default optimization options : skipped (pass -o to get this report)"
 
 exit 0
