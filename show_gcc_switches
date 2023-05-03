@@ -5,6 +5,11 @@
 # (c) Kaiwan N Billimoria
 # MIT
 
+# Turn on unofficial Bash 'strict mode'! V useful
+# "Convert many kinds of hidden, intermittent, or subtle bugs into immediate, glaringly obvious errors"
+# ref: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+set -euo pipefail
+
 name=$(basename $0)
 
 die()
@@ -64,6 +69,7 @@ echo "GCC : generic: default optimization options report written to: ${LOG}"
 show_gcc_option_switches()
 {
 [[ $# -ne 1 ]] && return
+set +e
 file $1 |grep -w "ELF" >/dev/null
 [[ $? -ne 0 ]] && {
 	echo "${name}: file $1 appears to not be an ELF object? Aborting..."
@@ -74,6 +80,7 @@ file $1 |grep "with debug_info" >/dev/null
 	echo "${name}: binary $1 appears to not be built with debug info? Aborting..."
 	exit 1
 }
+set -e
 #GCC_VER=$(gcc -v 2>&1 |tail -n1 |awk '{print $3}')
 echo "$1:"
 # On embedded, readelf can spit out errors + a lot of matches to 'producer' + many repititions;
@@ -89,6 +96,9 @@ readelf --debug-dump $1 2>/dev/null |grep producer |sed -n "s/.*GNU //p" |sort -
 
 #--- 'main'
 [[ $# -ne 1 ]] && {
+set +u
+ELF_FILE=$1
+set -u
   usage
   exit 1
 }
