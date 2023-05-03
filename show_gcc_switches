@@ -5,6 +5,9 @@
 # (c) Kaiwan N Billimoria
 # MIT
 
+# ToDo
+# [ ] show the meaning of each GCC option (?)
+
 # Turn on unofficial Bash 'strict mode'! V useful
 # "Convert many kinds of hidden, intermittent, or subtle bugs into immediate, glaringly obvious errors"
 # ref: http://redsymbol.net/articles/unofficial-bash-strict-mode/
@@ -19,11 +22,14 @@ exit 1
 }
 usage()
 {
-echo "Usage: ${name} [-<option>] binary-ELF-object-compiled-with-debug-opt-g
+echo "Usage: ${name} [-<option>] -f binary-ELF-object-compiled-with-debug-opt-g
+   -f <path/to/file> : the ELF object whose GCC flags you want to see (must be built with -g)
   <option> can be:
    -g  :  show generic default GCC option switches used
    -o  :  show generic default GCC optimization switches (enabled and disabled)
+-g and -o: you can pass none, either or both of them.
    -h  :  show this help screen
+
 The binary ELF object passed can be a binary executable, an object file, a kernel module, even a kernel image.
 LIMITATION: It MUST be compiled with debugging enabled, i.e., with -g"
 }
@@ -74,7 +80,10 @@ echo "GCC : generic: default optimization options detailed report written to: ${
 
 show_gcc_option_switches()
 {
-[[ $# -ne 1 ]] && return
+[[ $# -ne 1 ]] && {
+	echo "${name}: Error: no ELF file passed"
+	return
+}
 set +e
 file $1 |grep -w "ELF" >/dev/null
 [[ $? -ne 0 ]] && {
@@ -104,9 +113,6 @@ readelf --debug-dump $1 2>/dev/null |grep producer |sed -n "s/.*GNU //p" |sort -
 
 SHOW_GCC_DEF_OPTIONS=0
 SHOW_GCC_DEF_OPTIMIZATION_OPTIONS=0
-set +u
-ELF_FILE=$1
-set -u
 
 [[ $# -eq 0 ]] && {
   usage
@@ -115,20 +121,25 @@ set -u
 
 # getopts !
 # ref: https://www.geeksforgeeks.org/getopts-command-in-linux-with-examples/
-optspec="goh?"
+optspec=":f:gohH?"
 while getopts "${optspec}" opt
 do
- #echo "optspec=${optspec} opt=${opt} optarg = ${OPTARG}"
+	[[ 0 -eq 1 ]] && {
+	set +u
+    echo "opt=${opt} optarg=${OPTARG}"
+	set -u
+	}
     case "${opt}" in
+		  f)
+			set +u
+			ELF_FILE=${OPTARG}
+			set -u
+			;;
 		  g)
 			SHOW_GCC_DEF_OPTIONS=1
-			[[ $# -eq 2 ]] && ELF_FILE=$2
-			[[ $# -eq 3 ]] && ELF_FILE=$3
 			;;
 		  o)
 			SHOW_GCC_DEF_OPTIMIZATION_OPTIONS=1
-			[[ $# -eq 2 ]] && ELF_FILE=$2
-			[[ $# -eq 3 ]] && ELF_FILE=$3
 			;;
 		  h|H|?)
 		    usage
@@ -137,12 +148,12 @@ do
 	esac
 done
 
-#echo "#p = $#  ELF_FILE = ${ELF_FILE}  1st char=${ELF_FILE:0:1}
+set +u
+#echo "#p = $#  ELF_FILE = ${ELF_FILE}
 #show_def=${SHOW_GCC_DEF_OPTIONS}  show_optz=${SHOW_GCC_DEF_OPTIMIZATION_OPTIONS}"
-# Ignore ELF_FILE if it begins with '-'  (then it's the -g or -o option actually)
-[[ ${ELF_FILE:0:1} = "-" ]] && ELF_FILE=""
 
-show_gcc_option_switches ${ELF_FILE}
+[[ -n "${ELF_FILE}" ]] && show_gcc_option_switches ${ELF_FILE}
+set -u
 
 #--------------------------
 # Other interesting things!
