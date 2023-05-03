@@ -14,7 +14,13 @@ exit 1
 }
 usage()
 {
-echo "Usage: ${name} binary-ELF-object-compiled-with-debug-opt-g"
+echo "Usage: ${name} [-<option>] binary-ELF-object-compiled-with-debug-opt-g
+  <option> can be:
+   -g  :  show generic default GCC option switches used
+   -o  :  show generic default GCC optimization switches (enabled and disabled)
+   -h  :  show this help screen
+The binary ELF object passed can be a binary executable, an object file, a kernel module, even a kernel image.
+LIMITATION: It MUST be compiled with debugging enabled, i.e., with -g"
 }
 
 show_gcc_def_options()
