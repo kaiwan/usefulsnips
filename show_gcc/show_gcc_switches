@@ -1,0 +1,234 @@
+#!/bin/bash
+# Show GCC compiler option switches used to compile a given ELF object.
+# Limitation: works only for ELF objects compiled with debug info, -g
+# Can also show a detailed GCC report + GCC optimization flags that enabled/disabled.
+# (c) Kaiwan N Billimoria
+# MIT
+
+# ToDo
+# [+] show the meaning of each GCC option
+
+# Turn on unofficial Bash 'strict mode'! V useful
+# "Convert many kinds of hidden, intermittent, or subtle bugs into immediate, glaringly obvious errors"
+# ref: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+set -euo pipefail
+
+name=$(basename $0)
+
+die()
+{
+echo >&2 "$@"
+exit 1
+}
+usage()
+{
+echo "Usage: ${name} [-<option>] -f binary-ELF-object-compiled-with-debug-opt-g
+   -f <path/to/file> : the ELF object whose GCC flags you want to see (must be built with -g)
+<option> can be:
+   -g  :  show generic default GCC option switches used
+   -o  :  show generic default GCC optimization switches (enabled and disabled)
+   -m  :  show GCC man page snippets for the option switches obtained
+You may pass any combination of the above option switches, including none of them.
+   -h  :  show this help screen
+
+The binary ELF object passed can be a binary executable, an object file, a kernel module, even a kernel image.
+LIMITATION: It MUST be compiled with debugging enabled, i.e., with -g"
+}
+
+show_gcc_def_options()
+{
+[[ $# -eq 1 ]] && local LOG=$1 || LOG=${REPORT_GCC_DEF_OPTIONS}
+
+# Generate a C 'Hello, world', compile it with -g and figure out the GCC option switches
+cat > .hello.c <<@EOF@
+#include <stdio.h>
+#include <unistd.h>
+int main()
+{
+	printf("Hello, world\n");
+}
+@EOF@
+gcc -g .hello.c -o .a.out >/dev/null 2>&1 || {
+	echo "gcc failed" ; return
+}
+echo "
+Ordinary C program compiled with -g:"
+show_gcc_option_switches ./.a.out
+rm -f .hello.c .a.out
+
+# Other detailed method of getting compiler info : -Q -v
+gcc -Q -v .hello.c 2> ${LOG}
+echo "
+GCC : generic: default options detailed report written to: ${LOG}"
+}
+
+show_gcc_def_optimization_options()
+{
+[[ $# -eq 1 ]] && local LOG=$1 || LOG=${REPORT_GCC_DEF_OPTIMIZATIONS}
+
+local num_opt_en=$(gcc -Q --help=optimizers |grep " \-f.*\[enabled\]$"|wc -l)
+echo "GCC : generic: all enabled optimizations (${num_opt_en})"
+[[ ${num_opt_en} -gt 0 ]] && {
+ gcc -Q --help=optimizers |grep " \-f.*\[enabled\]$" > ${LOG}
+}
+local num_opt_dis=$(gcc -Q --help=optimizers |grep " \-f.*\[disabled\]$"|wc -l)
+echo "GCC : generic: all disabled optimizations (${num_opt_dis})"
+[[ ${num_opt_dis} -gt 0 ]] && {
+ gcc -Q --help=optimizers |grep " \-f.*\[disabled\]$" >> ${LOG}
+}
+echo "GCC : generic: default optimization options detailed report written to: ${LOG}"
+}
+
+# manhunt token2searchfor file
+manhunt()
+{
+# ref: https://stackoverflow.com/questions/56833547/use-sed-to-replace-regex-with-a-variable
+# use double-quotes!
+# + Escape the '-' option switch!
+
+#--- ISSUE: must match whole word only; the <\myword\> syntax doesn't seem to work...
+#--- Workaround:
+# store overall result (including multiple non-whole-word) matches in a temp file
+sed -r -n "/^ *\\${1}/,/^$/p" $2 > .tmp1
+local len=$(wc -l .tmp1|awk '{print $1}')
+# get all lines following pattern we want - the whole word
+#local var="\\$1" ; echo $var
+grep -w -A${len} "\\${1}" .tmp1 > .tmp2
+#wc -l .tmp2
+
+# find first empty line following the match
+local first_empty_line=$(grep -n "^$" .tmp2|head -n1|cut -d':' -f1)
+# Show the result!
+head -n$((first_empty_line-1)) .tmp2
+#---
+}
+
+# Parameters:
+#  $1 : file containing the GCC option switches to show help snippets on
+show_gcc_manpage_snippet()
+{
+local gcc_switch
+echo "----------------------------- GCC man page : help snippets -----------------------------"
+for opt in $(cat $1)
+do
+	# Process only tokens that begin with '-', f.e. '-mtune=generic'
+	[[ "${opt:0:1}" != "-" ]] && continue
+	# remove anything following the '=' incl it (iow, make '-mtune=generic' into '-mtune')
+	gcc_switch=$(echo ${opt}|cut -d'=' -f1)
+	#echo "----- ${gcc_switch} -----"
+	manhunt ${gcc_switch} ${GCC_MANPAGE_FILE}
+	echo
+done
+}
+
+#--- The key function
+# Parameters:
+#  $1 : ELF object whose GCC option switches we are to show
+show_gcc_option_switches()
+{
+[[ $# -ne 1 ]] && {
+	echo "${name}: Error: no ELF file passed"
+	return
+}
+set +e
+file $1 |grep -w "ELF" >/dev/null
+[[ $? -ne 0 ]] && {
+	echo "${name}: file $1 appears to not be an ELF object? Aborting..."
+	exit 1
+}
+file $1 |grep "with debug_info" >/dev/null
+[[ $? -ne 0 ]] && {
+	echo "${name}: binary $1 appears to not be built with debug info? Aborting..."
+	exit 1
+}
+set -e
+#GCC_VER=$(gcc -v 2>&1 |tail -n1 |awk '{print $3}')
+
+local LOG=gcc_summary
+echo "$1: GCC option switches passed, summary report:"
+# On embedded, readelf can spit out errors + a lot of matches to 'producer' + many repititions;
+# also, the gcc ver doesn't seem to match here.
+# So trim the o/p and 'unique' it (eliminate dups) via sort -u !
+readelf --debug-dump $1 2>/dev/null |grep producer |sed -n "s/.*GNU //p" |sort -u | tee ${LOG}
+##-- CAREFUL!  we have to match this -------------------------->^^^^^<--------------
+
+# Show 'man gcc' help snippets if asked to
+if [[ ${SHOW_GCC_MANPAGE_SNIPPET} -eq 1 ]] ; then
+	show_gcc_manpage_snippet ${LOG}
+else
+	echo "(Tip: pass the -m option switch to show help on each of these GCC options)"
+fi
+}
+
+
+#--- 'main'
+
+SHOW_GCC_DEF_OPTIONS=0
+SHOW_GCC_DEF_OPTIMIZATION_OPTIONS=0
+SHOW_GCC_MANPAGE_SNIPPET=0
+
+[[ $# -eq 0 ]] && {
+  usage
+  exit 1
+}
+
+# getopts !
+# ref: https://www.geeksforgeeks.org/getopts-command-in-linux-with-examples/
+optspec=":f:gomhH?"
+while getopts "${optspec}" opt
+do
+	[[ 0 -eq 1 ]] && {
+	set +u
+    echo "opt=${opt} optarg=${OPTARG}"
+	set -u
+	}
+    case "${opt}" in
+		  f)
+			set +u
+			ELF_FILE=${OPTARG}
+			set -u
+			;;
+		  g)
+			SHOW_GCC_DEF_OPTIONS=1
+			;;
+		  o)
+			SHOW_GCC_DEF_OPTIMIZATION_OPTIONS=1
+			;;
+		  m)
+			SHOW_GCC_MANPAGE_SNIPPET=1
+			man gcc |col -b > mangcc
+			GCC_MANPAGE_FILE=mangcc
+			;;
+		  h|H|?)
+		    usage
+			exit 0
+			;;
+	esac
+done
+
+set +u
+#echo "#p = $#  ELF_FILE = ${ELF_FILE}
+#show_def=${SHOW_GCC_DEF_OPTIONS}  show_optz=${SHOW_GCC_DEF_OPTIMIZATION_OPTIONS} show_mangcc=${SHOW_GCC_MANPAGE_SNIPPET}"
+
+[[ -n "${ELF_FILE}" ]] && show_gcc_option_switches ${ELF_FILE}
+set -u
+
+#--------------------------
+# Other interesting things!
+#--------------------------
+# Get GCC default options:
+# gcc -Q -v filename.c
+REPORT_GCC_DEF_OPTIONS=report_gcc_def_options.txt
+[[ ${SHOW_GCC_DEF_OPTIONS} -eq 1 ]] && show_gcc_def_options ${REPORT_GCC_DEF_OPTIONS} || \
+	echo "
+Show GCC default options              : skipped (pass -g to get this report)"
+
+#--------------------------
+# Show all optimizations option switches (-f<foo>):
+# gcc -Q --help=optimizers
+REPORT_GCC_DEF_OPTIMIZATIONS=report_gcc_def_optimizations.txt
+[[ ${SHOW_GCC_DEF_OPTIMIZATION_OPTIONS} -eq 1 ]] && show_gcc_def_optimization_options ${REPORT_GCC_DEF_OPTIMIZATIONS} || \
+	echo "Show GCC default optimization options : skipped (pass -o to get this report)"
+
+rm -f .tmp1 .tmp2 2>/dev/null
+exit 0
