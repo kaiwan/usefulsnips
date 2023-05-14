@@ -1,0 +1,26 @@
+#!/bin/bash
+# Report kernel memory usage
+# Uses /proc/iomem as source
+# (c) kaiwanTECH, Kaiwan NB, 2023
+
+verbose=0
+[[ "$1" = "-v" ]] && verbose=1
+
+sudo grep "Kernel" /proc/iomem > .t1
+# extract the numbers
+cat .t1|sed 's/^ *//' | cut -d':' -f1 | awk -F'-' '{print $1, $2}' > .t2
+# add the 0x prefix to each word
+cat .t2 |sed 's/[^ ]* */0x&/g' > .t3
+
+# perform subtraction in hex; prefix 0x
+awk --non-decimal-data '{printf("%x\n", $2-$1)}' .t3 |sed 's/[^ ]* */0x&/g' >.t4
+
+# cumulatively total the hex #s and report as decimal
+if [[ ${verbose} -eq 1 ]] ; then
+  echo "Current kernel memory usage is (sum of kernel code, rodata, data and bss)"
+  awk --non-decimal-data 'BEGIN {t=0} {t += $1} END { \
+	printf("%ld = %.1f KB = %.1f MB\n", t, t/1024.0, t/(1024.0*1024.0))}' .t4
+else
+  awk --non-decimal-data 'BEGIN {t=0} {t += $1} END {printf("%ld\n", t)}' .t4
+fi
+rm -f .t[1234]
