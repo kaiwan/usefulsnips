@@ -1,11 +1,31 @@
 #!/bin/bash
-# Report kernel memory usage
+# Report static kernel memory usage
 # Uses /proc/iomem as source
 # (c) kaiwanTECH, Kaiwan NB, 2023
 
-verbose=0
-[[ "$1" = "-v" ]] && verbose=1
+# Turn on unofficial Bash 'strict mode'! V useful
+# "Convert many kinds of hidden, intermittent, or subtle bugs into immediate, glaringly obvious errors"
+# ref: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+set -euo pipefail
 
+name=$(basename $0)
+show_k_static_memusage=1
+show_k_dyn_memusage=1
+verbose=0
+
+usage()
+{
+echo "Usage: ${name} [-<option>]
+<option> can be:
+   -s  :  show kernel *static* memory usage (from /proc/iomem)
+   -d  :  show kernel *dynamic* memory usage (via smem(8) ; requires smem installed)
+Displays both static and dynamic memory usage by default
+   -v  :  verbose mode (off by default)
+   -h  :  show this help screen"
+}
+
+kernel_static_memusage()
+{
 sudo grep "Kernel" /proc/iomem > .t1
 # extract the numbers
 cat .t1|sed 's/^ *//' | cut -d':' -f1 | awk -F'-' '{print $1, $2}' > .t2
@@ -17,10 +37,59 @@ awk --non-decimal-data '{printf("%x\n", $2-$1)}' .t3 |sed 's/[^ ]* */0x&/g' >.t4
 
 # cumulatively total the hex #s and report as decimal
 if [[ ${verbose} -eq 1 ]] ; then
-  echo "Current kernel memory usage is (sum of kernel code, rodata, data and bss)"
+  echo "Current *static* kernel memory usage is (sum of kernel code, rodata, data and bss)"
   awk --non-decimal-data 'BEGIN {t=0} {t += $1} END { \
 	printf("%ld = %.1f KB = %.1f MB\n", t, t/1024.0, t/(1024.0*1024.0))}' .t4
 else
   awk --non-decimal-data 'BEGIN {t=0} {t += $1} END {printf("%ld\n", t)}' .t4
 fi
 rm -f .t[1234]
+}
+
+# TODO - dynamic kernel mem usage
+kernel_dynamic_memusage()
+{
+ # get total RAM
+ local RAM_KB=$(awk '$1=/^MemTotal:/ {print $2}' /proc/meminfo)
+ local cmd="smem --system --totals --abbreviate --realmem=${RAM_KB}K"
+ [[ ${verbose} -eq 1 ]] && echo "Dynamic memory report (via ${cmd}):"
+ eval ${cmd}
+}
+
+
+#--- 'main'
+# getopts !
+# ref: https://www.geeksforgeeks.org/getopts-command-in-linux-with-examples/
+# ... For every option letter, getopts stores the option in the variable flag(declared just after the optstring), and iterates the loop.
+# Every option letter followed by a colon expects an argument, which is stored in the variable OPTARG.
+# If getopts was expecting an argument, but could not parse one, it prints an error. If it was not expecting one, OPTARG will be initialized to “”(an empty string).
+# If the very first character of the optstring was “:”(a colon), the error message is not printed
+optspec=":sdvhH?"
+while getopts "${optspec}" opt
+do
+    [[ 0 -eq 1 ]] && {
+    set +u
+    echo "opt=${opt} optarg=${OPTARG}"
+    set -u
+    }   
+    case "${opt}" in
+		  s) show_k_static_memusage=1
+			;;
+		  d) show_k_dyn_memusage=1
+			 which smem >/dev/null || {
+				echo "${name}: FATAL: smem(8) required; install it and retry..."
+				exit 1
+			}
+			;;
+          v) set +u
+             verbose=1
+             set -u
+            ;;
+          h|H|?)
+            usage
+            exit 0
+            ;;
+    esac
+done
+[[ ${show_k_static_memusage} -eq 1 ]] && kernel_static_memusage
+[[ ${show_k_dyn_memusage} -eq 1 ]] && kernel_dynamic_memusage
