@@ -42,10 +42,14 @@ show_gcc_def_options()
 # Generate a C 'Hello, world', compile it with -g and figure out the GCC option switches
 cat > .hello.c <<@EOF@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
-int main()
+static void foo(int x) { printf("got %d\n", x); }
+int main(int argc, char **argv)
 {
 	printf("Hello, world\n");
+	foo(argc);
+	exit(0);
 }
 @EOF@
 gcc -g .hello.c -o .a.out >/dev/null 2>&1 || {
@@ -169,6 +173,11 @@ SHOW_GCC_MANPAGE_SNIPPET=0
 
 [[ $# -eq 0 ]] && {
   usage
+  exit 1
+}
+
+which readelf >/dev/null || {
+  echo "readelf required, pl install the package (usually it's 'binutils') and retry"
   exit 1
 }
 
