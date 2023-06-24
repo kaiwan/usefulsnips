@@ -1,6 +1,6 @@
 #!/bin/bash
-# Report static kernel memory usage
-# Uses /proc/iomem as source
+# Report static and dynamic kernel memory usage
+# Uses /proc/iomem and smem as sources
 # (c) kaiwanTECH, Kaiwan NB, 2023
 
 # Turn on unofficial Bash 'strict mode'! V useful
