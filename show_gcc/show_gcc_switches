@@ -14,6 +14,10 @@
 set -euo pipefail
 
 name=$(basename $0)
+PDIR=$(which $0)
+[ -z "${PDIR}" ] && PDIR=$(dirname $0)  # true if this script isn't in PATH
+export PFX=$(dirname ${PDIR})    # dir in which this script and tools reside
+#echo "PFS = $PFX"
 
 die()
 {
@@ -204,17 +208,23 @@ do
 			SHOW_GCC_DEF_OPTIMIZATION_OPTIONS=1
 			;;
 		  m)
-		        set +e
-		        man gcc >/dev/null 2>&1
-			if [[ $? -ne 0 ]] ; then
-			  SHOW_GCC_MANPAGE_SNIPPET=0
-			  echo "'man gcc' not working, aborting man page snippets facility"
+	        set +e
+			man1 gcc >/dev/null 2>&1
+			if [[ $? -ne 0 ]] ; then  # what 'man'? no man :-)
+			  if [[ -f ${PFX}/mangcc ]] ; then
+				 echo "WARNING: man not locally installed, so using this ver of 'man gcc' (may not match your GCC precisely):
+    gcc-11		    2022-04-21			    GCC(1)"
+			     SHOW_GCC_MANPAGE_SNIPPET=1
+			  else
+			     echo "'man gcc' not working, aborting man page snippets facility"
+			     SHOW_GCC_MANPAGE_SNIPPET=0
+			  fi
 			else
 			  SHOW_GCC_MANPAGE_SNIPPET=1
-			  man gcc |col -b > mangcc
-			  GCC_MANPAGE_FILE=mangcc
+			  man gcc |col -b > ${PFX}/mangcc
 			fi
-		        set -e
+			GCC_MANPAGE_FILE=${PFX}/mangcc
+	        set -e
 			;;
 		  h|H|?)
 		    usage
