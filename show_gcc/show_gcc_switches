@@ -48,26 +48,30 @@ cat > .hello.c <<@EOF@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-static void foo(int x) { printf("got %d\n", x); }
+static void foo(int x) { printf("  %s():got %d\n", __func__, x); }
 int main(int argc, char **argv)
 {
-	printf("Hello, world\n");
+	printf("%s():Hello, world\n", __func__);
 	foo(argc);
 	exit(0);
 }
 @EOF@
+# Ordinary compilation Without any option switches specified, so that we can
+# see what it defaults to on this platform
 gcc -g .hello.c -o .a.out >/dev/null 2>&1 || {
-	echo "gcc failed" ; return
+	echo "gcc failed to compile C src" ; return
 }
 echo "
 Ordinary C program compiled with -g:"
 show_gcc_option_switches ./.a.out
-rm -f .hello.c .a.out
 
 # Other detailed method of getting compiler info : -Q -v
-gcc -Q -v .hello.c 2> ${LOG}
+gcc -Q -v .hello.c 2> ${LOG} || {
+	echo "gcc -Q -v failed to compile C src" ; return
+}
 echo "
 GCC : generic: default options detailed report written to: ${LOG}"
+rm -f a.out .a.out .hello.c
 }
 
 show_gcc_def_optimization_options()
