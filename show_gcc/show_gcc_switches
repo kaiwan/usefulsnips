@@ -41,7 +41,12 @@ LIMITATION: It MUST be compiled with debugging enabled, i.e., with -g"
 
 show_gcc_def_options()
 {
-[[ $# -eq 1 ]] && local LOG=$1 || LOG=${REPORT_GCC_DEF_OPTIONS}
+which gcc >/dev/null || {
+  echo "gcc required, pl install the package and retry"
+  return
+}
+local LOG
+[[ $# -eq 1 ]] && LOG=$1 || LOG=${REPORT_GCC_DEF_OPTIONS}
 
 # Generate a C 'Hello, world', compile it with -g and figure out the GCC option switches
 cat > .hello.c <<@EOF@
@@ -76,7 +81,8 @@ rm -f a.out .a.out .hello.c
 
 show_gcc_def_optimization_options()
 {
-[[ $# -eq 1 ]] && local LOG=$1 || LOG=${REPORT_GCC_DEF_OPTIMIZATIONS}
+local LOG
+[[ $# -eq 1 ]] && LOG=$1 || LOG=${REPORT_GCC_DEF_OPTIMIZATIONS}
 
 local num_opt_en=$(gcc -Q --help=optimizers |grep " \-f.*\[enabled\]$"|wc -l)
 echo "GCC : generic: all enabled optimizations (${num_opt_en})"
@@ -213,7 +219,7 @@ do
 			;;
 		  m)
 	        set +e
-			man1 gcc >/dev/null 2>&1
+			man gcc >/dev/null 2>&1
 			if [[ $? -ne 0 ]] ; then  # what 'man'? no man :-)
 			  if [[ -f ${PFX}/mangcc ]] ; then
 				 echo "WARNING: man not locally installed, so using this ver of 'man gcc' (may not match your GCC precisely):
