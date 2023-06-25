@@ -111,8 +111,19 @@ sed -r -n "/^ *\\${1}/,/^$/p" $2 > .tmp1
 local len=$(wc -l .tmp1|awk '{print $1}')
 # get all lines following pattern we want - the whole word
 #local var="\\$1" ; echo $var
+set +e
 grep -w -A${len} "\\${1}" .tmp1 > .tmp2
+local stat=$?
 #wc -l .tmp2
+set -e
+
+# If there's no match for the token, AND it isn't of the form '-fno-...' or '-mno-', say so
+[[ ${stat} -ne 0 ]] && {
+	local first5=$(cut -c 1-5 <<< $1)
+	if [[ "${first5}" != "-fno-" && "${first5}" != "-mno-" ]] ; then
+		echo "< $1 : no match found in 'man gcc' page >"
+	fi
+}
 
 # find first empty line following the match
 local first_empty_line=$(grep -n "^$" .tmp2|head -n1|cut -d':' -f1)
