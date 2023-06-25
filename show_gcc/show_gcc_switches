@@ -137,7 +137,10 @@ head -n$((first_empty_line-1)) .tmp2
 show_gcc_manpage_snippet()
 {
 local gcc_switch
-echo "----------------------------- GCC man page : help snippets -----------------------------"
+echo "
+----------------------------- GCC man page : help snippets -----------------------------
+Note: GCC options of the form -fno-FOO / -mno-FOO are _not_displayed as they're the antonym of
+the corresponding -fFOO / -mFOO option (they imply 'turn this Off')"
 for opt in $(cat $1)
 do
 	# Process only tokens that begin with '-', f.e. '-mtune=generic'
