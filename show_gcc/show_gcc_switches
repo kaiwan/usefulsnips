@@ -220,6 +220,10 @@ do
 		  f)
 			set +u
 			ELF_FILE=${OPTARG}
+			[[ ! -f ${ELF_FILE} ]] && {
+				echo "${name}: file '${ELF_FILE}' not found, aborting..."
+				exit 1
+			}
 			set -u
 			;;
 		  g)
