@@ -67,16 +67,21 @@ gcc -g .hello.c -o .a.out >/dev/null 2>&1 || {
 	echo "gcc failed to compile C src" ; return
 }
 echo "
-Ordinary C program compiled with -g:"
+=== Ordinary C program compiled with -g ==="
 show_gcc_option_switches ./.a.out
 
 # Other detailed method of getting compiler info : -Q -v
+# From 'man gcc':
+# ...  If the -Q option appears on the command line before the --help= option,
+#  then the descriptive text displayed by --help= is changed.  Instead of
+#  describing the displayed options, an indication is given as to whether the
+#  option is enabled, disabled or set to a specific value ...
 gcc -Q -v .hello.c 2> ${LOG} || {
 	echo "gcc -Q -v failed to compile C src" ; return
 }
 echo "
 GCC : generic: default options detailed report written to: ${LOG}"
-rm -f a.out .a.out .hello.c
+rm -f a.out .a.out .hello.c 2>/dev/null || true
 }
 
 show_gcc_def_optimization_options()
@@ -84,6 +89,12 @@ show_gcc_def_optimization_options()
 local LOG
 [[ $# -eq 1 ]] && LOG=$1 || LOG=${REPORT_GCC_DEF_OPTIMIZATIONS}
 
+# From 'man gcc':
+# ... The output is sensitive to the effects of previous command-line options,
+#  so for example it is possible to find out which optimizations are enabled at
+#  -O2 by using:
+#      -Q -O2 --help=optimizers
+# ...
 local num_opt_en=$(gcc -Q --help=optimizers |grep " \-f.*\[enabled\]$"|wc -l)
 echo "GCC : generic: all enabled optimizations (${num_opt_en})"
 [[ ${num_opt_en} -gt 0 ]] && {
@@ -139,8 +150,8 @@ show_gcc_manpage_snippet()
 local gcc_switch
 echo "
 ----------------------------- GCC man page : help snippets -----------------------------
-Note: GCC options of the form -fno-FOO / -mno-FOO are _not_displayed as they're the antonym of
-the corresponding -fFOO / -mFOO option (they imply 'turn this Off')"
+Note: GCC options of the form -fno-FOO / -mno-FOO are _not_ displayed as they're the
+ antonym of the corresponding -fFOO    / -mFOO options (they imply 'turn this Off')"
 for opt in $(cat $1)
 do
 	# Process only tokens that begin with '-', f.e. '-mtune=generic'
