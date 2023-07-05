@@ -164,6 +164,47 @@ do
 done
 }
 
+# Parameters
+#  $1 : input file
+#  $2 : output file : not GCC options
+#  $3 : output file : GCC options
+eliminate_dups()
+{
+[[ $# -ne 3 ]] && {
+		echo "eliminate_dups(): req 3 params"
+    return
+}
+local words word
+local t1=$(mktemp) t2=$(mktemp) t3=$(mktemp) t4=$(mktemp)
+rm -f .notopt 2>/dev/null || true
+
+# Read the file line by line
+while IFS= read -r line; do
+  # Split the line into words using whitespace as delimiter
+  words=($line)
+
+  # Iterate over each word
+  for word in "${words[@]}"; do
+	# If the word's a GCC option (beginns with '-') process it, else save for later
+    if [[ ${word:0:1} = "-" ]] ; then
+		echo "$word"
+	else
+		echo "$word " >> .notopt
+	fi
+  done
+done < "$1" > ${t1}
+
+sort -u .notopt > ${t2}
+# Get them all in one line (rm the \n)
+awk '{ printf "%s ", $0 }' ${t2} > ${2}
+
+sort -u ${t1} > ${t4}
+# Get them all in one line (rm the \n)
+awk '{ printf "%s ", $0 }' ${t4} > ${3}
+#uniq -i -u .tmp1
+rm -f .notopt ${t1} ${t2} ${t3} ${t4} 2>/dev/null || true
+}
+
 #--- The key function
 # Parameters:
 #  $1 : ELF object whose GCC option switches we are to show
@@ -187,20 +228,49 @@ file $1 |grep "with debug_info" >/dev/null
 set -e
 #GCC_VER=$(gcc -v 2>&1 |tail -n1 |awk '{print $3}')
 
-local LOG=gcc_summary
-echo "$1: GCC option switches passed, summary report:"
+local OUT_FILE_RAW1=gcc_summary_raw1 OUT_FILE_RAW2=gcc_summary_raw2 
+local OUT_COMPILER_NOT_OPTS=gcc_summary_notopts OUT_COMPILER_OPTS=gcc_summary_option_switches
+
 # On embedded, readelf can spit out errors + a lot of matches to 'producer' + many repititions;
 # also, the gcc ver doesn't seem to match here.
 # So trim the o/p and 'unique' it (eliminate dups) via sort -u !
-readelf --debug-dump $1 2>/dev/null |grep producer |sed -n "s/.*GNU //p" |sort -u | tee ${LOG}
-##-- CAREFUL!  we have to match this -------------------------->^^^^^<--------------
+readelf --debug-dump $1 2>/dev/null |grep producer |sed -n "s/.*GNU //p" > ${OUT_FILE_RAW1}
+#readelf --debug-dump $1 2>/dev/null |grep producer |sed -n "s/.*GNU //p" | sort -u > ${OUT_FILE_RAW}
+##-- CAREFUL!  we have to match this -------------------------->^^^^<--------------
+
+# The above sed search/replace got rid of the 'GNU ' prefix, so now prefix 'GNU ' to each line
+sed -e 's/^/GNU /' ${OUT_FILE_RAW1} > ${OUT_FILE_RAW2}
+
+# Get # of DWARF debug sections within the ELF object
+local num_DWARF_dbg_secs=$(readelf --debug-dump $1 2>/dev/null |grep producer |sed -n "s/.*GNU //p" |wc -l)
+# RELOOK : this includes stuff like 'AS 2.35.1', ... ??
+
+# In GCC options, many dups seem to occur (esp for foreign-compiled binaries), in spite of the sort -u
+# Eliminate dups
+eliminate_dups ${OUT_FILE_RAW2} ${OUT_COMPILER_NOT_OPTS} ${OUT_COMPILER_OPTS}
+#------------ SUMMARY REPORT ----------------------------------------
+echo
+echo "=== $1: summary report ==="
+echo "-- Raw output --"
+cat ${OUT_FILE_RAW2}
+[[ ${num_DWARF_dbg_secs} -ge 1 ]] && echo "(${num_DWARF_dbg_secs} DWARF debug sections found)"
+echo "-- Cooked output (alphabetically ordered, duplicates eliminated) --"
+echo "Compiler tokens (that aren't option switches):"
+cat ${OUT_COMPILER_NOT_OPTS}
+echo
+echo "Compiler option switches:"
+cat ${OUT_COMPILER_OPTS}
+echo
+#-----------------------------------------------------------------------
+#readelf --debug-dump $1 2>/dev/null |grep producer |sed -n "s/.*GNU //p" |sort -u | tee ${LOG}
 
 # Show 'man gcc' help snippets if asked to
 if [[ ${SHOW_GCC_MANPAGE_SNIPPET} -eq 1 ]] ; then
-	show_gcc_manpage_snippet ${LOG}
+	show_gcc_manpage_snippet ${OUT_COMPILER_OPTS}
 else
-	echo "(Tip: pass the -m option switch to show help on each of these GCC options)"
+	echo "(Tip: pass the -m option switch to show help on each of these (cooked) GCC options)"
 fi
+rm -f tmp2
 }
 
 
@@ -276,7 +346,10 @@ set +u
 #echo "#p = $#  ELF_FILE = ${ELF_FILE}
 #show_def=${SHOW_GCC_DEF_OPTIONS}  show_optz=${SHOW_GCC_DEF_OPTIMIZATION_OPTIONS} show_mangcc=${SHOW_GCC_MANPAGE_SNIPPET}"
 
-[[ -n "${ELF_FILE}" ]] && show_gcc_option_switches ${ELF_FILE}
+[[ -n "${ELF_FILE}" ]] && {
+	file ${ELF_FILE}
+	show_gcc_option_switches ${ELF_FILE}
+}
 set -u
 
 #--------------------------
