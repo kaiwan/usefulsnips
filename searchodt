@@ -1,0 +1,17 @@
+#!/bin/bash
+# Src: https://ubuntuforums.org/showthread.php?t=899179&page=2
+
+if [ $# -ne 2 ]; then
+        echo "Usage: searchodt searchpath searchterm"
+        exit 1
+fi
+
+find $1 -name "*.odt" | while read file
+do
+        unzip -ca "$file" content.xml | grep -qli "$2"
+        if [ $? -eq 0 ]; then
+                echo "Found keyword in: " $file
+				ls -lh $file
+				#unzip -ca "$file" content.xml | grep -i "$2" #"$2" >${TMP}
+        fi
+done
