@@ -1,0 +1,34 @@
+#!/bin/bash
+# Attempt to capture all execve's via eBPF
+# TODO
+#  [ ] write in the date-time daily
+
+
+# UPDATE as required
+LOG=~/Dropbox/all_commands_log.txt
+
+which execsnoop >/dev/null && EXECSNOOP=execsnoop || {
+	which execsnoop-bpfcc >/dev/null && EXECSNOOP=execsnoop-bpfcc || {
+		echo "FATAL: requires execsnoop[-bpfcc] to be installed."
+		exit 1
+	}
+}
+
+pgrep ${EXECSNOOP} >/dev/null
+if [[ $? -ne 0 ]] ; then
+  sudo echo # prep/'pre-fault' for sudo
+  echo "$(date) -------------------------" >> ${LOG}
+  echo "Running execsnoop util now:
+sudo nohup ${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null &
+"
+  sudo nohup ${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null &
+  sleep .5
+  stty sane
+
+  # Spawn a Terminal window to display commands as they're executed
+  gnome-terminal --window --title "execsnoop: all cmds" \
+		  --geometry=200x16+100-50 --hide-menubar --zoom=0.75 \
+		  -- tail -f ${LOG}
+fi
+#---
+
