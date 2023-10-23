@@ -17,6 +17,7 @@ DEBUG=0
 #  $1 : network domain to scan (f.e. 10.20.1.0)
 discover_devices_local()
 {
+#local tmpfile=$(mktemp)
 local tmpfile=/tmp/ssh2seccam0100 # $(tempfile)
 local rec macaddr line=1 iplinenum ipline ipaddr devname
 #sudo arp-scan --localnet|grep "^192[^\(DUP:]" > ${tmp}
@@ -54,47 +55,55 @@ sudo nmap -sn -PR $1/24 --host-timeout 1m -oN ${tmpfile} > /dev/null
 [ $? -ne 0 ] && {
 	echo "nmap failed; stat=$?" ; return
 }
-DEBUG=0
+
 [ ${DEBUG} -eq 1 ] && {
 	echo "nmap arp ping $1:
-$(cat ${tmpfile})"
+$(cat ${tmpfile})
+Press Enter ..."
 	read
 }
+decho() {
+[[ ${DEBUG} -eq 1 ]] && echo $*
+}
+
+DEBUG=0
 #set -x
-
-
 IFS=$'\n'
 for rec in $(cat ${tmpfile})
+#for rec in $(cat t1)
 do
-  #echo "rec= $rec"
-  echo "${rec}" |grep -q "^MAC Address:" && {
+  decho "rec= $rec"
+  echo "${rec}" |grep "^MAC Address:" >/dev/null && {
 	macaddr=$(echo "${rec}" |awk '{print $3}')
 	devname=$(echo "${rec}" |awk -F\( '{print $2}')
 	devname=${devname::-1} # rm the trailing ')'
-    echo -n "${macaddr},"
-    #echo -n "${macaddr},\"${devname}\","
+	echo -n "${macaddr},"
+	#echo -n "${macaddr},\"${devname}\","
 	# 2 lines above this record is the line containing the IP addr
 	iplinenum=$((line-2))
 	[ ${iplinenum} -le 0 ] && {
-		echo "iplinenum 0 or -ve; something went wrong..."
+	    echo "iplinenum 0 or -ve; something went wrong..."
 	    break
 	}
 	# fetch the line
 	ipline=$(sed "${iplinenum}q;d" ${tmpfile})
+	#ipline=$(sed "${iplinenum}q;d" t1)
 	# f.e. ipline="Nmap scan report for yeelink-light-lamp4_mibt4AC6.wlan (10.20.1.15)"
-	#echo "
-	#ipline=$ipline"
-	echo "${ipline}" |egrep -q "\(.*\)" # esc the () when using egrep, not with grep!
+	decho "
+ipline=$ipline
+	"
+	#continue
+
+	echo "${ipline}" |grep -E -q "\(.*\)" # esc the () when using egrep, not with grep! # ?
 	if [ $? -eq 0 ] ; then  # IP addr is in parentheses: 
 			# Of the form:
 			#  Nmap scan report for _gateway (192.168.1.1)
-		devname=$(echo "${ipline}"|awk '{print $5}')
+	#	devname=$(echo "${ipline}"|awk '{print $5}')
 		ipaddr=$(echo "${ipline}"|awk '{print $6}')
 		ipaddr=${ipaddr:1}   # rm the leading '('
 		ipaddr=${ipaddr::-1} # rm the trailing ')'
 	else
-			# Of the form:
-			#  Nmap scan report for 192.168.1.8
+		# Of the form: 'Nmap scan report for 192.168.1.8'
 		ipaddr=$(echo "${ipline}"|awk '{print $5}')
 	fi
 	echo "${devname}, ${ipaddr}"
