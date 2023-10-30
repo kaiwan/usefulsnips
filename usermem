@@ -1,0 +1,13 @@
+#!/bin/bash
+# Show userspace (process) - mostly physical - memory usage lowest-to-highest
+
+#grep -r "^VmRSS" /proc/*/status |sed 's/kB$//'|sort -t: -k3n
+
+CMD="ps vaxf |sort -k8n |tail"
+eval ${CMD}
+
+echo "
+Legend: (cmd: ${CMD})
+RSS (7th col): resident set size, the non-swapped physical memory that a task has used (in kilobytes).  (alias rssize, rsz)
+TRS (8th col): text resident set size, the amount of physical memory devoted to executable code.
+DRS (6th col): data resident set size, the amount of physical memory devoted to other than executable code."
