@@ -5,7 +5,7 @@
 
 
 # UPDATE as required
-LOG=~/Dropbox/all_commands_log.txt
+LOG=~/all_commands_log.txt
 
 which execsnoop >/dev/null && EXECSNOOP=execsnoop || {
 	which execsnoop-bpfcc >/dev/null && EXECSNOOP=execsnoop-bpfcc || {
