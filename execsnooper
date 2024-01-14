@@ -2,10 +2,10 @@
 # Attempt to capture all execve's via eBPF
 # TODO
 #  [ ] write in the date-time daily
-
+#  [ ] calculate display terminal geometry based on curr resolution
 
 # UPDATE as required
-LOG=~/Dropbox/all_commands_log.txt
+LOG=~/all_commands_log.txt
 
 which execsnoop >/dev/null && EXECSNOOP=execsnoop || {
 	which execsnoop-bpfcc >/dev/null && EXECSNOOP=execsnoop-bpfcc || {
@@ -17,11 +17,12 @@ which execsnoop >/dev/null && EXECSNOOP=execsnoop || {
 pgrep ${EXECSNOOP} >/dev/null
 if [[ $? -ne 0 ]] ; then
   sudo echo # prep/'pre-fault' for sudo
+  [[ ! -f ${LOG} ]] && touch ${LOG}
   echo "$(date) -------------------------" >> ${LOG}
   echo "Running execsnoop util now:
-sudo nohup ${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null &
+sudo env "PATH=${PATH}" nohup ${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null &
 "
-  sudo nohup ${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null &
+  sudo env "PATH=${PATH}" nohup ${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null &
   sleep .5
   stty sane
 
@@ -30,5 +31,3 @@ sudo nohup ${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null &
 		  --geometry=200x16+100-50 --hide-menubar --zoom=0.75 \
 		  -- tail -f ${LOG}
 fi
-#---
-
