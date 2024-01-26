@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Turn on unofficial Bash 'strict mode'! V useful
+# "Convert many kinds of hidden, intermittent, or subtle bugs into immediate, glaringly obvious errors"
+# ref: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+set -euo pipefail
+
+name=$(basename $0)
+die()
+{
+echo >&2 "FATAL: $*"
+exit 1
+}
+
+# runcmd
+# Parameters
+#   $1 ... : params are the command to run
+runcmd()
+{
+	[ $# -eq 0 ] && return
+	echo "$@"
+	eval "$@"
+}
+
+# Attempt to gain access to the kernel config; first via /proc/config.gz
+# and, if unavailable, via the /boot/config-<kver> file
+# On success, the filename's placed in the var KCONF
+get_kconfig_file()
+{
+KCONF=""
+sudo modprobe configs 2>/dev/null || true
+if [ -f /proc/config.gz ] ; then
+    gunzip -c /proc/config.gz > /tmp/kconfig
+    KCONF=/tmp/kconfig
+elif [ -f /boot/config-"$(uname -r)" ] ; then
+    KCONF=/boot/config-$(uname -r)
+else
+    echo "${name}: FATAL: whoops, cannot gain access to kernel config, aborting..."
+    exit 1
+fi
+}
+
+# chkconf()
+# $1 : CONFIG_FOO to check : MANDATORY
+# $2 : string decribing CONFIG_FOO to check : [OPTIONAL]
+chkconf()
+{
+[[ $# -lt 1 ]] && return
+[[ $# -eq 2 ]] && echo -n "$2: "
+#grep -q "$1=y" ${KCONF} && echo "enabled" || echo "disabled"
+grep "$1" ${KCONF}
+}
+
+
+# 'main'
+[[ $# -lt 1 ]] && die "Usage: ${name} kernel-config-option
+ Eg. ${name} CONFIG_PREEMPT"
+
+get_kconfig_file
+if [ ! -s "${KCONF}" ]; then
+    die "${name}: whoops, invalid kernel config file (${KCONF})? Aborting..."
+fi
+echo "Kernel config: ${KCONF}"
+[[ "${KCONF}" = "/tmp/kconfig" ]] && echo " (from /proc/config.gz)"
+
+for kp in "$@"
+do
+  echo "
+${kp}: "
+  chkconf ${kp}
+done
+
+exit 0
