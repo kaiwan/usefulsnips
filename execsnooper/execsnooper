@@ -4,9 +4,21 @@
 #  [ ] write in the date-time daily
 #  [ ] calculate display terminal geometry based on curr resolution
 
-# UPDATE as required
-LOG=/home/c2kp/all_commands_log.txt
+# UPDATE as required, esp the username portion!
+LOG=/home/kaiwan/all_commands_log.txt
 
+run_execsnoop()
+{
+  [[ ! -f ${LOG} ]] && touch ${LOG}
+  echo "---------- $(date) -------------------------" >> ${LOG}
+  echo "Running execsnoop util now:
+${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null &
+"
+  ${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null
+}
+
+
+#--- 'main'
 #echo "HEY! $0 here"
 which execsnoop >/dev/null && EXECSNOOP=execsnoop || {
 	which execsnoop-bpfcc >/dev/null && EXECSNOOP=execsnoop-bpfcc || {
@@ -15,21 +27,22 @@ which execsnoop >/dev/null && EXECSNOOP=execsnoop || {
 	}
 }
 
-pgrep ${EXECSNOOP} >/dev/null
-if [[ $? -ne 0 ]] ; then  # execsnoop isn't running...
-  [[ ! -f ${LOG} ]] && touch ${LOG}
-  echo "---------- $(date) -------------------------" >> ${LOG}
-  echo "Running execsnoop util now:
-${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null &
-"
-  ${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null
+START_VIA_SYSTEMD=1
+
+if [[ ${START_VIA_SYSTEMD} -eq 1 ]] ; then
+	run_execsnoop
+else
+  pgrep ${EXECSNOOP} #>/dev/null
+  if [[ $? -ne 0 ]] ; then  # execsnoop isn't running...
+     run_execsnoop
   
   # Spawn a Terminal window to display commands as they're executed
   # NOT here... this runs via systemd at boot.. do it later via a script...
   #gnome-terminal --window --title "execsnoop: all cmds" \
   #		  --geometry=200x16+100-50 --hide-menubar --zoom=0.75 \
   #		  -- tail -f ${LOG}
-else
-   echo " ${EXECSNOOP} is already running"
-   exit 1
+  else
+     echo " ${EXECSNOOP} is already running"
+     exit 1
+  fi
 fi
