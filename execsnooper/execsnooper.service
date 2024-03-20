@@ -4,7 +4,7 @@ Description=Execsnoop-er startup: log all processes that run, logfile /home/USR/
 [Service]
 Restart=always
 Type=simple
-ExecStart=/home/c2kp/kaiwanTECH/usefulsnips/execsnooper/execsnooper
+ExecStart=/home/kaiwan/usefulsnips/execsnooper/execsnooper
 
 [Install]
 WantedBy=basic.target
