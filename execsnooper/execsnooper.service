@@ -1,0 +1,10 @@
+[Unit]
+Description=Execsnoop-er startup: log all processes that run, logfile /home/USR/all_commands_log.txt
+
+[Service]
+Restart=always
+Type=simple
+ExecStart=/home/c2kp/kaiwanTECH/usefulsnips/execsnooper/execsnooper
+
+[Install]
+WantedBy=basic.target
