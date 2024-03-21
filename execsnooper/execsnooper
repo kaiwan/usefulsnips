@@ -5,14 +5,14 @@
 #  [ ] calculate display terminal geometry based on curr resolution
 
 # UPDATE as required, esp the username portion!
-LOG=/home/kaiwan/all_commands_log.txt
+LOG=/home/${USER}/all_commands_log.txt
 
 run_execsnoop()
 {
   [[ ! -f ${LOG} ]] && touch ${LOG}
   echo "---------- $(date) -------------------------" >> ${LOG}
-  echo "Running execsnoop util now:
-${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null &
+  echo "Running ${EXECSNOOP} in bg now:
+${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null
 "
   ${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null
 }
@@ -27,9 +27,16 @@ which execsnoop >/dev/null && EXECSNOOP=execsnoop || {
 	}
 }
 
+# Write a line showing the date into the log at midnight; we use the at daemon to do so...
+hash at && {
+  echo ">--------- $(date) -------------------------" >> ${LOG} | at -M midnight
+  [[ $? -eq 0 ]] && echo "date str to log via at every 00:00" || echo "date str to log via at failed?"
+}
+
 START_VIA_SYSTEMD=1
 
 if [[ ${START_VIA_SYSTEMD} -eq 1 ]] ; then
+	LOG=/home/kaiwan/all_commands_log.txt  # be specific
 	run_execsnoop
 else
   pgrep ${EXECSNOOP} #>/dev/null
@@ -46,3 +53,5 @@ else
      exit 1
   fi
 fi
+
+#exit 0
