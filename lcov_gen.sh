@@ -14,6 +14,7 @@
 # 
 # License:
 # MIT License.
+
 # Turn on unofficial Bash 'strict mode'! V useful
 # "Convert many kinds of hidden, intermittent, or subtle bugs into immediate, glaringly obvious errors"
 # ref: http://redsymbol.net/articles/unofficial-bash-strict-mode/
@@ -26,11 +27,21 @@ source ${PFX}/common.sh || {
  exit 1
 }
 
-########### Globals follow #########################
-# Style: gNameOfGlobalVar
+die()
+{
+echo >&2 "FATAL: $*"
+exit 1
+}
 
-
-########### Functions follow #######################
+# runcmd
+# Parameters
+#   $1 ... : params are the command to run
+runcmd()
+{
+	[ $# -eq 0 ] && return
+	echo "$@"
+	eval "$@"
+}
 
 METADIR=lcov_meta
 # 
@@ -67,6 +78,9 @@ lcov -c -i -d . -o ${METADIR}/appbase.info
 }
 
 ##### 'main' : execution starts here #####
+
+hash lcov 2>/dev/null || die "Pl install the lcov package first"
+hash genhtml 2>/dev/null || die "Pl install the lcov package first"
 
 [ $# -lt 1 ] && {
   echo "Usage: ${name} app-under-test-pathname arg1 arg2 [...]"
