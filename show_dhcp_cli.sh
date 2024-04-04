@@ -50,7 +50,7 @@ fi
 # *   wl — wlan
 # *   ww — wwan
 
-intf=wlp4s0
+intf=wlo1
 [ $# -eq 1 ] && {
   [ "$1" = "lo" ] && {
     echo "${name}: cannot use 'lo' as interface"
