@@ -14,6 +14,11 @@
 # 
 # License:
 # MIT License.
+# Turn on unofficial Bash 'strict mode'! V useful
+# "Convert many kinds of hidden, intermittent, or subtle bugs into immediate, glaringly obvious errors"
+# ref: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+set -euo pipefail
+
 name=$(basename $0)
 PFX=$(dirname `which $0`)
 source ${PFX}/common.sh || {
