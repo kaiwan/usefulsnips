@@ -44,7 +44,7 @@ runcmd()
 }
 
 METADIR=lcov_meta
-# 
+# See lcov(1) for details (under the --initial option)
 # Params:
 #  $1 : directory of test program
 #  $2 : test app
@@ -56,7 +56,8 @@ cd $1 || exit 1
 mkdir -p ${METADIR} 2>/dev/null
 
 # 1. create baseline coverage data file
-lcov -c -i -d . -o ${METADIR}/appbase.info
+lcov --capture --initial --directory . --output-file ${METADIR}/appbase.info
+#lcov -c -i -d . -o ${METADIR}/appbase.info
 
 # 2. perform test
  local app=$1/$2
@@ -65,10 +66,13 @@ lcov -c -i -d . -o ${METADIR}/appbase.info
  eval ${app} $@
 
  # 3. create test coverage data file
- lcov -c -d . -o ${METADIR}/apptest.info
+lcov --capture --directory . --output-file ${METADIR}/apptest.info
+ #lcov -c -d . -o ${METADIR}/apptest.info
 
  # 4. combine baseline and test coverage data
- lcov -a ${METADIR}/appbase.info -a ${METADIR}/apptest.info -o ${METADIR}/appfinal.info
+ lcov --add-tracefile ${METADIR}/appbase.info --add-tracefile ${METADIR}/apptest.info \
+   --output-file ${METADIR}/appfinal.info
+ #lcov -a ${METADIR}/appbase.info -a ${METADIR}/apptest.info -o ${METADIR}/appfinal.info
 
  # 5. Generate HTML report
  genhtml -o lcov_report/ -f -t "Lcov: $(pwd)" ${METADIR}/appfinal.info || exit 1
@@ -97,6 +101,11 @@ IMP :: we ASSUME that the program-under-test \"$1\" has been built
 with profiling information, i.e., these flags are included
 in the Makefile:
    -fprofile-arcs -ftest-coverage
+
+FYI: If you land up with this error (typicaly on Ubuntu):
+ Can't locate lcovutil.pm in @INC (you may need to install the lcovutil module) ...
+pl see:
+https://bugs.launchpad.net/ubuntu/+source/lcov/+bug/2029924
 "
 
 #echo "all: $@ ; dirname : $(dirname $1)"
