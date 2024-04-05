@@ -39,7 +39,7 @@ exit 1
 runcmd()
 {
 	[ $# -eq 0 ] && return
-	echo "$@"
+	echo ">>> $@"
 	eval "$@"
 }
 
@@ -56,28 +56,30 @@ cd $1 || exit 1
 mkdir -p ${METADIR} 2>/dev/null
 
 # 1. create baseline coverage data file
-lcov --capture --initial --directory . --output-file ${METADIR}/appbase.info
-#lcov -c -i -d . -o ${METADIR}/appbase.info
+runcmd "lcov --capture --initial --directory . --output-file ${METADIR}/appbase.info"
 
 # 2. perform test
  local app=$1/$2
  shift ; shift  # get rid of first 2, leaving only the args
- echo "eval ${app} $@"
+ echo ">>> eval ${app} $@"
  eval ${app} $@
 
  # 3. create test coverage data file
-lcov --capture --directory . --output-file ${METADIR}/apptest.info
- #lcov -c -d . -o ${METADIR}/apptest.info
+runcmd "lcov --capture --directory . --output-file ${METADIR}/apptest.info"
 
  # 4. combine baseline and test coverage data
- lcov --add-tracefile ${METADIR}/appbase.info --add-tracefile ${METADIR}/apptest.info \
-   --output-file ${METADIR}/appfinal.info
- #lcov -a ${METADIR}/appbase.info -a ${METADIR}/apptest.info -o ${METADIR}/appfinal.info
+ runcmd "lcov --add-tracefile ${METADIR}/appbase.info --add-tracefile ${METADIR}/apptest.info \
+   --output-file ${METADIR}/appfinal.info"
 
  # 5. Generate HTML report
+ # pecuiliar: using the runcmd() wrapper here makes genhtml fail ??
+ echo ">>> genhtml -o lcov_report/ -f -t "Lcov: $(pwd)" ${METADIR}/appfinal.info"
  genhtml -o lcov_report/ -f -t "Lcov: $(pwd)" ${METADIR}/appfinal.info || exit 1
  echo "Report generated here:"
  ls lcov_report/
+ echo "
+See via:
+ firefox/google-chrome lcov_report/index.html"
  )
 }
 
