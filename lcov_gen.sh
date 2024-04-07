@@ -76,7 +76,7 @@ genhtml -o ${LCOV_MERGED_HTML_DIR}/ -f -t "Lcov: $(pwd)" merged.info || echo "ge
 #  $3,$4,... : args to test program
 lcov_work()
 {
-echo " #params: $#; all: $@"
+#echo " #params: $#; all: $@"
 
 #-- use a different meta-dir each run so that we can later *merge* code coverage results
 [[ ${MERGE_COVG} -eq 1 ]] && METADIR_MERGE=${METADIR}/lcovmeta_$(date +%Y%m%d_%H%M%S)
@@ -137,7 +137,7 @@ RESET=0
   usage
   exit 0
 }
-echo "#params: $#; all: $@"
+#echo "#params: $#; all: $@"
 [ $1 = "-r" ] && {
   RESET=1
   dir=$(dirname "$2")
