@@ -41,6 +41,8 @@ runcmd()
 }
 
 
+LCOV_ONERUN_HTML_DIR=lcov_onerun_html
+LCOV_MERGED_HTML_DIR=lcov_merged_html
 METADIR=0lcov_meta
 MERGE_COVG=1
 
@@ -63,8 +65,8 @@ LCOV_MERGE_CMD="lcov ${LCOV_MERGE_CMD} --output-file merged.info"
 #echo "LCOV_MERGE_CMD = ${LCOV_MERGE_CMD}"
 runcmd "${LCOV_MERGE_CMD}"
 
-echo ">>> genhtml -o lcov_merged_html/ -f -t \"Lcov: $(pwd)\" merged.info"
-genhtml -o lcov_merged_html/ -f -t "Lcov: $(pwd)" merged.info || echo "genhtml failed"
+echo ">>> genhtml -o ${LCOV_MERGED_HTML_DIR}/ -f -t \"Lcov: $(pwd)\" merged.info"
+genhtml -o ${LCOV_MERGED_HTML_DIR}/ -f -t "Lcov: $(pwd)" merged.info || echo "genhtml failed"
 }
 
 # See lcov(1) for details (under the --initial option)
@@ -102,11 +104,11 @@ runcmd "lcov --capture --directory . --output-file ${METADIR_MERGE}/apptest.info
 
  # 5. Generate HTML report
  # pecuiliar: using the runcmd() wrapper here makes genhtml fail ??
- echo ">>> genhtml -o lcov_report/ -f -t "Lcov: "$(pwd)"" ${METADIR_MERGE}/appfinal.info"
- genhtml -o lcov_report/ -f -t "Lcov: $(pwd)" "${METADIR_MERGE}"/appfinal.info || exit 1
+ echo ">>> genhtml -o ${LCOV_ONERUN_HTML_DIR}/ -f -t "Lcov: "$(pwd)"" ${METADIR_MERGE}/appfinal.info"
+ genhtml -o ${LCOV_ONERUN_HTML_DIR}/ -f -t "Lcov: $(pwd)" "${METADIR_MERGE}"/appfinal.info || exit 1
  echo "
 See this (intermediate) code coverage report via:
- firefox/google-chrome lcov_report/index.html"
+ firefox/google-chrome ${LCOV_ONERUN_HTML_DIR}/index.html"
  )
  merged_report
 }
@@ -167,7 +169,7 @@ https://bugs.launchpad.net/ubuntu/+source/lcov/+bug/2029924
 "
 
 # clean previous; including the .gcda ! Don't rm the .gcno, its generated on build
-rm -rf "${app}"_gcov *.gcda ./*.info lcov_report/ lcov_merged_html/ 2>/dev/null
+rm -rf "${app}"_gcov *.gcda ./*.info ${LCOV_ONERUN_HTML_DIR}/ ${LCOV_MERGED_HTML_DIR}/ 2>/dev/null
 # Reset? Clean _all_ the lcov metadata - including those of prev runs - if RESET is 1
 [[ ${RESET} -eq 1 ]] && {
   echo "<<< RESET mode On: deleting all existing lcov_meta_<foo>/ dirs now ... >>>"
@@ -187,7 +189,7 @@ run this script with the -r (reset) option (you can add this to the Maekfile
 invoking it if you wish).
 ------------------------------------------------------------------------------
 Once all coverage test cases are run, see the final report here:
- firefox file://$(pwd)/lcov_merged_html/index.html
+ firefox file://$(pwd)/${LCOV_MERGED_HTML_DIR}/index.html
  or
- google-chrome file://$(pwd)/lcov_merged_html/index.html"
+ google-chrome file://$(pwd)/${LCOV_MERGED_HTML_DIR}/index.html"
 exit 0
