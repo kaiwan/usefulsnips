@@ -170,10 +170,10 @@ https://bugs.launchpad.net/ubuntu/+source/lcov/+bug/2029924
 
 # clean previous; including the .gcda ! Don't rm the .gcno, its generated on build
 rm -rf "${app}"_gcov *.gcda ./*.info ${LCOV_ONERUN_HTML_DIR}/ ${LCOV_MERGED_HTML_DIR}/ 2>/dev/null
-# Reset? Clean _all_ the lcov metadata - including those of prev runs - if RESET is 1
+# Reset mode? Clean _all_ the lcov metadata - including those of prev runs - if RESET is 1
 [[ ${RESET} -eq 1 ]] && {
   echo "<<< RESET mode On: deleting all existing lcov_meta_<foo>/ dirs now ... >>>"
-  rm -rf ${METADIR}/
+  rm -rf ${METADIR}/ ${LCOV_ONERUN_HTML_DIR}/ ${LCOV_MERGED_HTML_DIR}/
 }
 
 shift
@@ -184,7 +184,7 @@ Done.
 --------------------------------- NOTE ---------------------------------------
 - If you want a cumulative / merged code coverage report, run your next coverage
 test case via this script. In effect, simply adjust the CMDLINE_ARGS variable in
-the Makefile and run 'make covg' again
+the 'better' Makefile and run 'make covg' again
 
 - If you want to start from scratch, *wiping* previous coverage data, then
 run this script with the -r (reset) option (you can add this option in the
