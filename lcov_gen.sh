@@ -183,10 +183,12 @@ echo "
 Done.
 --------------------------------- NOTE ---------------------------------------
 - If you want a cumulative / merged code coverage report, run your next coverage
-test case via this script.
-- If you want to start from scratch again, wiping previous coverage data, then
-run this script with the -r (reset) option (you can add this to the Maekfile
-invoking it if you wish).
+test case via this script. In effect, simply adjust the CMDLINE_ARGS variable in
+the Makefile and run 'make covg' again
+
+- If you want to start from scratch, *wiping* previous coverage data, then
+run this script with the -r (reset) option (you can add this option in the
+Makefile invoking it if you wish to).
 ------------------------------------------------------------------------------
 Once all coverage test cases are run, see the final report here:
  firefox file://$(pwd)/${LCOV_MERGED_HTML_DIR}/index.html
