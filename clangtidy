@@ -11,7 +11,8 @@ Can give a wildcard like *.[ch]"
   exit 1
 }
 
-CHECKS_ON="-*,clang-analyzer-*,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"
+CHECKS_ON="-*,clang-analyzer-*,bugprone-*,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"
+#CHECKS_ON="-*,clang-analyzer-*,bugprone-signal-handler,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"
   # -* implies all clang-tidy checks are Off; has to be the first option..
 CHECKS_OFF="-clang-analyzer-cplusplus*,-misc-include-cleaner,-readability-identifier-length,-readability-braces-around-statements"
 # -<opt>-* implies all <opt> checks are Off
