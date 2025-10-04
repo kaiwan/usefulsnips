@@ -4,8 +4,6 @@
 # Quick Description:
 # Show all DHCP (IP and MAC) addresses for a given network interface.
 # A (useful?) and simple wrapper over arp-scan.
-# 
-# Last Updated : 03Dec2018
 # Created      : 03Dec2018
 # 
 # Author:
@@ -64,3 +62,4 @@ echo "### ${name}: taking \"${intf}\" as the network interface"
 show_available_intf
 echo
 sudo arp-scan --interface=${intf} --localnet
+#sudo arp-scan --interface=${intf} --localnet |grep -v "(DUP: "
