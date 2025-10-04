@@ -1,0 +1,91 @@
+#!/bin/bash
+#
+# This helper script shows *all* shared library dependencies of the given file (via ldd)
+# It recursively runs ldd upon each shlib (leaving out common/known objects
+# like vdso,libc,ld-linux)
+# f.e. try:
+#  findlibs $(which ps)"
+#
+# (c) 2025 Kaiwan N Billimoria, kaiwanTECH
+# License: MIT / GPL v2
+
+set -euo pipefail
+# Turn on unofficial Bash 'strict mode'! V useful
+# "Convert many kinds of hidden, intermittent, or subtle bugs into immediate, glaringly obvious errors"
+# ref: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+name=$(basename "$0")
+#source ${PFX}/../err_common.sh || {
+source color.sh || {
+    echo "${name}: fatal: could not source file '${PFX}/../color.sh', aborting..."
+    exit 1
+}
+
+show_ldd()
+{
+ldd "${1}" > .tmp 2>&1
+IFS=$'\n'
+local depth=1 rec SHLIB="" shlib_basenm SHLIB_PREV="a"
+for rec in $(cat .tmp)
+do
+  #echo "rec: $rec"
+  #echo "SHLIB_PREV=${SHLIB_PREV}    SHLIB=${SHLIB}"
+
+  SHLIB=$(echo "${rec}" |xargs |awk '{print $3}')
+  [[ -z "${SHLIB}" ]] && continue # stopping condition
+  [[ "${SHLIB}" == "${SHLIB_PREV}" ]] && { 
+     echo "******************" ; continue 
+     }
+
+  # Don't process (recurse over) these objects: vdso, libc.so, ld[-linux].so
+  shlib_basenm=$(basename "${SHLIB}")
+  [[ "${shlib_basenm}" = *"vdso"* ]] && continue
+  [[ "${shlib_basenm}" = *"libc.so"* ]] && continue
+  [[ "${shlib_basenm}" = *"ld-linux.so"* ]] && continue
+  [[ "${shlib_basenm}" = *"ld.so"* ]] && continue
+
+  for (( i=0;i<depth;i++ ))
+  do
+     echo -n " "
+  done
+
+  fg_red
+  echo "${SHLIB}"
+  #echo "$SHLIB (${depth})"
+  color_reset
+  depth=$((depth+1))
+
+  [[ ! -f ${SHLIB} ]] && continue
+  ldd "${SHLIB}" || true
+  show_ldd "${SHLIB}"
+  SHLIB_PREV="${SHLIB}"
+ 
+  #echo
+done
+rm -f .tmp
+}
+
+
+#--- 'main'
+[[ $# -eq 0 ]] && {
+  echo "Usage: ${name} program-executable-or-shlib.so
+This helper script shows *all* shared library dependencies of the given file (via ldd)
+It recursively runs ldd upon each shlib (leaving out common/known objects like vdso,libc,ld-linux)
+f.e. try:
+ findlibs \$(which ps)"
+  exit 1
+}
+
+PRG="$1"  #/usr/libexec/mutter-x11-frames
+[[ ! -f "${PRG}" ]] && {
+  echo "${name}: the specified file \"${PRG}\" doesn't exist or isn't a regular file? Aborting..."
+  exit 1
+}
+ldd "${PRG}" >/dev/null 2>&1 || {
+  echo "${name}: ldd reports an error when run on the specified file \"${PRG}\"
+  (Is it a static lib?) Aborting..."
+  exit 1
+}
+echo "> ${PRG}"
+show_ldd "${PRG}"
+
+exit 0
