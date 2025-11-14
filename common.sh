@@ -8,6 +8,33 @@
 # kaiwan -at- kaiwantech -dot- com
 # License: MIT
 #------------------------------------------------------------------
+###----------------------------------------------------------------------------------------------
+# Turn on unofficial Bash 'strict mode'! V useful
+# "Convert many kinds of hidden, intermittent, or subtle bugs into immediate, glaringly obvious errors"
+# ref: http://redsymbol.net/articles/unofficial-bash-strict-mode/
+#set -euo pipefail
+
+name=$(basename $0)
+
+die()
+{
+echo >&2 "FATAL: $*" ; exit 1
+}
+warn()
+{
+echo >&2 "WARNING: $*"
+}
+# runcmd
+# Parameters
+#   $1 ... : params are the command to run
+runcmd()
+{
+	[[ $# -eq 0 ]] && return
+	echo "$@"
+	eval "$@"
+}
+###----------------------------------------------------------------------------------------------
+
 export TOPDIR=$(pwd)
 ON=1
 OFF=0
