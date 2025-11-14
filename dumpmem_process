@@ -1,0 +1,45 @@
+#!/bin/bash
+# With help from claude.ai !
+
+[[ $# -ne 1 ]] && {
+  echo "Usage: ${name} PID-of-process
+This script will attempt to *dump* all this process' virtual memory regions
+(accessed via /proc/PID/maps) into binary files stored within a dir whose name
+is dumpmem_PID.
+
+Can search it in several ways:
+- # Search for ASCII string patterns
+strings * | grep -i -E \"<pattern1|pattern2|...>\"
+
+- # Search for hex patterns
+hexdump -C core.<pid> | grep \"pattern\"
+
+# Use grep directly on binary
+grep -a \"search_term\" <file>.bin
+
+# For more advanced searching
+xxd file.bin | grep \"hex_pattern\"
+
+CAUTION!
+- Can take time...
+- Can take disk space...
+- This script should be used for ethical hacking ONLY"
+ exit 1
+}
+
+PID=${1}
+OUTPUT_DIR="memdump_${PID}"
+mkdir -p "${OUTPUT_DIR}"
+
+grep -E "r" /proc/${PID}/maps | while read line; do
+    RANGE=$(echo ${line} | awk '{print $1}')
+    START=$(echo ${RANGE} | cut -d'-' -f1)
+    END=$(echo ${RANGE} | cut -d'-' -f2)
+    PERMS=$(echo ${line} | awk '{print $2}')
+    NAME=$(echo ${line} | awk '{for(i=6;i<=NF;i++) printf "%s ", $i; print ""}' | sed 's/ *$//')
+    
+    FILENAME="${OUTPUT_DIR}/${START}-${END}.bin"
+    
+    dd if=/proc/${PID}/mem of="${FILENAME}" bs=1 skip=$((0x${START})) count=$((0x${END} - 0x${START})) 2>/dev/null
+done
+
