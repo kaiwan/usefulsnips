@@ -46,7 +46,8 @@ Warn()
 # $2 : dir
 mkclean()
 {
-  local cmd="make clean"
+  #local cmd="make clean"
+  local cmd="make clean ; make clean_lcov"  # for our 'better' Makefile' covg target
   local dir=""
 
   if [ $# -gt 1 -a "$1" != "-q" ] ; then
