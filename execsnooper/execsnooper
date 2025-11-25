@@ -10,7 +10,7 @@ LOG=/home/${USER}/all_commands_log.txt
 run_execsnoop()
 {
   [[ ! -f ${LOG} ]] && touch ${LOG}
-  echo "---------- $(date) -------------------------" >> ${LOG}
+  echo ">--------- $(date) -------------------------" >> ${LOG}
   echo "Running ${EXECSNOOP} in bg now:
 ${EXECSNOOP} -T -U >> ${LOG} 2>/dev/null
 "
@@ -45,6 +45,7 @@ else
   
   # Spawn a Terminal window to display commands as they're executed
   # NOT here... this runs via systemd at boot.. do it later via a script...
+  # (our /0setup* script does this)
   #gnome-terminal --window --title "execsnoop: all cmds" \
   #		  --geometry=200x16+100-50 --hide-menubar --zoom=0.75 \
   #		  -- tail -f ${LOG}
