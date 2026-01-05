@@ -87,7 +87,7 @@ cd "$1" || exit 1
 mkdir -p "${METADIR_MERGE}" #2>/dev/null
 
 # 1. create baseline coverage data file
-runcmd "lcov --capture --initial --directory . --output-file ${METADIR_MERGE}/appbase.info"
+runcmd "lcov --ignore-errors empty --capture --initial --directory . --output-file ${METADIR_MERGE}/appbase.info"
 
 # 2. perform test
  local app=$1/$2
@@ -96,10 +96,10 @@ runcmd "lcov --capture --initial --directory . --output-file ${METADIR_MERGE}/ap
  eval "${app}" "$@"
 
  # 3. create test coverage data file; the '.info' file's also called the 'tracefile'
-runcmd "lcov --capture --directory . --output-file ${METADIR_MERGE}/apptest.info"
+runcmd "lcov --ignore-errors empty --capture --directory . --output-file ${METADIR_MERGE}/apptest.info"
 
  # 4. combine baseline and test coverage data
- runcmd "lcov --add-tracefile ${METADIR_MERGE}/appbase.info --add-tracefile ${METADIR_MERGE}/apptest.info \
+ runcmd "lcov --ignore-errors empty --add-tracefile ${METADIR_MERGE}/appbase.info --add-tracefile ${METADIR_MERGE}/apptest.info \
    --output-file ${METADIR_MERGE}/appfinal.info"
 
  # 5. Generate HTML report
